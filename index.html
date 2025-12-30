@@ -1243,14 +1243,17 @@
 
                             // 교환이 이득이면 실행
                             if (swappedScore > currentScore) {
-                                // 병원 교환
+                                // 병원 교환 (주소도 함께 교환)
                                 const tempIdx = r1.hospitalIdx;
                                 const tempName = r1.hospitalName;
+                                const tempAddr = r1.hospitalAddr;
                                 r1.hospitalIdx = r2.hospitalIdx;
                                 r1.hospitalName = r2.hospitalName;
+                                r1.hospitalAddr = r2.hospitalAddr;
                                 r1.score = newScore1;
                                 r2.hospitalIdx = tempIdx;
                                 r2.hospitalName = tempName;
+                                r2.hospitalAddr = tempAddr;
                                 r2.score = newScore2;
                                 improved = true;
                             }
@@ -1366,11 +1369,14 @@
                             if (newScore1 + newScore2 > currentScore) {
                                 const tempIdx = r1.hospitalIdx;
                                 const tempName = r1.hospitalName;
+                                const tempAddr = r1.hospitalAddr;
                                 r1.hospitalIdx = r2.hospitalIdx;
                                 r1.hospitalName = r2.hospitalName;
+                                r1.hospitalAddr = r2.hospitalAddr;
                                 r1.score = newScore1;
                                 r2.hospitalIdx = tempIdx;
                                 r2.hospitalName = tempName;
+                                r2.hospitalAddr = tempAddr;
                                 r2.score = newScore2;
                                 improved = true;
                             }
