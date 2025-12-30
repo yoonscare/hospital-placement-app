@@ -920,11 +920,11 @@
 
         function performPlacement() {
             const results = [];
-            const unplacedStudents = []; // 정규 기간에 배치 못한 학생들
+            const unplacedStudents = [];
 
             // 병원별 잔여 정원 복사
             const remaining = hospitals.map(h => {
-                const r = { name: h.name, address: h.address };
+                const r = { name: h.name, address: h.address, originalIdx: hospitals.indexOf(h) };
                 PLACEMENT_SLOTS.forEach(slot => {
                     r[`${slot}_nicu`] = h[`${slot}_nicu`] || 0;
                     r[`${slot}_peds`] = h[`${slot}_peds`] || 0;
@@ -935,58 +935,61 @@
             // 반별로 학생 그룹화
             const studentsByClass = {};
             STUDENT_CLASSES.forEach(c => studentsByClass[c] = []);
-
             students.forEach(s => {
                 if (studentsByClass[s.class]) {
                     studentsByClass[s.class].push({ ...s });
                 }
             });
 
-            // 1단계: 정규 기간 배치 (C반 → A반 → B반)
+            // 1단계: 정규 기간 배치 (최적화 알고리즘 적용)
             for (const classId of STUDENT_CLASSES) {
                 const classStudents = studentsByClass[classId];
                 if (classStudents.length === 0) continue;
 
-                // 주소 기반 병원 매칭 점수 계산 후 정렬
+                // 모든 학생의 병원별 점수 계산
                 classStudents.forEach(student => {
                     student.hospitalScores = remaining.map((h, idx) => ({
                         idx,
                         hospital: h,
                         score: calculateAddressScore(student.address, h.address)
                     })).sort((a, b) => b.score - a.score);
+
+                    // 최고 점수 저장 (제약 조건 계산용)
+                    student.bestScore = student.hospitalScores[0]?.score || 0;
                 });
 
-                // 신생아실과 소아과를 균형있게 배치
-                let nicuFirst = true;
+                // ★ 최적화 1: 제약이 많은 학생 우선 배치
+                // (좋은 병원 옵션이 적은 학생부터 배치하여 공정성 확보)
+                classStudents.sort((a, b) => a.bestScore - b.bestScore);
+
+                // 초기 배치
+                const classResults = [];
+                let nicuCount = 0, pedsCount = 0;
 
                 for (const student of classStudents) {
                     let placed = false;
-                    const deptOrder = nicuFirst ? ['nicu', 'peds'] : ['peds', 'nicu'];
-                    nicuFirst = !nicuFirst;
+                    // 부서 균형 맞추기
+                    const deptOrder = nicuCount <= pedsCount ? ['nicu', 'peds'] : ['peds', 'nicu'];
 
-                    // 점수 높은 병원부터 시도 (해당 반 정규 티오 사용)
                     for (const { idx } of student.hospitalScores) {
                         const hospital = remaining[idx];
-
                         for (const dept of deptOrder) {
                             const key = `${classId}_${dept}`;
                             if (hospital[key] > 0) {
                                 hospital[key]--;
+                                if (dept === 'nicu') nicuCount++; else pedsCount++;
 
-                                results.push({
+                                classResults.push({
                                     studentId: student.studentId,
                                     name: student.name,
                                     class: student.class,
-                                    period: CLASS_PERIODS[student.class],
-                                    placementSlot: classId,
-                                    isMixed: false,
                                     address: student.address,
-                                    hospital: hospital.name,
-                                    department: dept === 'nicu' ? '신생아실' : '소아과',
-                                    deptKey: dept,
-                                    status: '배치완료'
+                                    hospitalIdx: idx,
+                                    hospitalName: hospital.name,
+                                    dept: dept,
+                                    score: student.hospitalScores.find(h => h.idx === idx).score,
+                                    slot: classId
                                 });
-
                                 placed = true;
                                 break;
                             }
@@ -994,72 +997,189 @@
                         if (placed) break;
                     }
 
-                    // 정규 기간 배치 실패 → 7-8주차 혼합 대기열에 추가
                     if (!placed) {
                         unplacedStudents.push(student);
                     }
                 }
-            }
 
-            // 2단계: 7-8주차 혼합 배치 (정규 기간에 배치 못한 학생들)
-            let nicuFirst = true;
-            for (const student of unplacedStudents) {
-                let placed = false;
-                const deptOrder = nicuFirst ? ['nicu', 'peds'] : ['peds', 'nicu'];
-                nicuFirst = !nicuFirst;
+                // ★ 최적화 2: 교환 개선 (Swap Improvement)
+                // 배치된 학생들 간 교환으로 전체 점수 향상
+                let improved = true;
+                let iterations = 0;
+                const maxIterations = 100;
 
-                // 주소 점수 다시 계산
-                const hospitalScores = remaining.map((h, idx) => ({
-                    idx,
-                    hospital: h,
-                    score: calculateAddressScore(student.address, h.address)
-                })).sort((a, b) => b.score - a.score);
+                while (improved && iterations < maxIterations) {
+                    improved = false;
+                    iterations++;
 
-                for (const { idx } of hospitalScores) {
-                    const hospital = remaining[idx];
+                    for (let i = 0; i < classResults.length; i++) {
+                        for (let j = i + 1; j < classResults.length; j++) {
+                            const r1 = classResults[i];
+                            const r2 = classResults[j];
 
-                    for (const dept of deptOrder) {
-                        const key = `mixed_${dept}`;
-                        if (hospital[key] > 0) {
-                            hospital[key]--;
+                            // 같은 부서일 때만 교환 가능
+                            if (r1.dept !== r2.dept) continue;
 
-                            results.push({
-                                studentId: student.studentId,
-                                name: student.name,
-                                class: student.class,
-                                period: '7-8주차',
-                                placementSlot: 'mixed',
-                                isMixed: true,
-                                address: student.address,
-                                hospital: hospital.name,
-                                department: dept === 'nicu' ? '신생아실' : '소아과',
-                                deptKey: dept,
-                                status: '배치완료'
-                            });
+                            // 교환 후 점수 계산
+                            const student1 = classStudents.find(s => s.studentId === r1.studentId);
+                            const student2 = classStudents.find(s => s.studentId === r2.studentId);
 
-                            placed = true;
-                            break;
+                            const currentScore = r1.score + r2.score;
+                            const newScore1 = calculateAddressScore(student1.address, remaining[r2.hospitalIdx].address);
+                            const newScore2 = calculateAddressScore(student2.address, remaining[r1.hospitalIdx].address);
+                            const swappedScore = newScore1 + newScore2;
+
+                            // 교환이 이득이면 실행
+                            if (swappedScore > currentScore) {
+                                // 병원 교환
+                                const tempIdx = r1.hospitalIdx;
+                                const tempName = r1.hospitalName;
+                                r1.hospitalIdx = r2.hospitalIdx;
+                                r1.hospitalName = r2.hospitalName;
+                                r1.score = newScore1;
+                                r2.hospitalIdx = tempIdx;
+                                r2.hospitalName = tempName;
+                                r2.score = newScore2;
+                                improved = true;
+                            }
                         }
                     }
-                    if (placed) break;
                 }
 
-                // 혼합 배치도 실패
-                if (!placed) {
+                // 결과 저장
+                classResults.forEach(r => {
                     results.push({
-                        studentId: student.studentId,
-                        name: student.name,
-                        class: student.class,
-                        period: '-',
-                        placementSlot: null,
+                        studentId: r.studentId,
+                        name: r.name,
+                        class: r.class,
+                        period: CLASS_PERIODS[r.class],
+                        placementSlot: r.slot,
                         isMixed: false,
-                        address: student.address,
-                        hospital: '-',
-                        department: '-',
-                        deptKey: null,
-                        status: '미배치'
+                        address: r.address,
+                        hospital: r.hospitalName,
+                        department: r.dept === 'nicu' ? '신생아실' : '소아과',
+                        deptKey: r.dept,
+                        score: r.score,
+                        status: '배치완료'
                     });
+                });
+            }
+
+            // 2단계: 7-8주차 혼합 배치 (동일한 최적화 적용)
+            if (unplacedStudents.length > 0) {
+                // 점수 재계산
+                unplacedStudents.forEach(student => {
+                    student.hospitalScores = remaining.map((h, idx) => ({
+                        idx,
+                        hospital: h,
+                        score: calculateAddressScore(student.address, h.address)
+                    })).sort((a, b) => b.score - a.score);
+                    student.bestScore = student.hospitalScores[0]?.score || 0;
+                });
+
+                // 제약 많은 학생 우선
+                unplacedStudents.sort((a, b) => a.bestScore - b.bestScore);
+
+                const mixedResults = [];
+                let nicuCount = 0, pedsCount = 0;
+
+                for (const student of unplacedStudents) {
+                    let placed = false;
+                    const deptOrder = nicuCount <= pedsCount ? ['nicu', 'peds'] : ['peds', 'nicu'];
+
+                    for (const { idx } of student.hospitalScores) {
+                        const hospital = remaining[idx];
+                        for (const dept of deptOrder) {
+                            const key = `mixed_${dept}`;
+                            if (hospital[key] > 0) {
+                                hospital[key]--;
+                                if (dept === 'nicu') nicuCount++; else pedsCount++;
+
+                                mixedResults.push({
+                                    studentId: student.studentId,
+                                    name: student.name,
+                                    class: student.class,
+                                    address: student.address,
+                                    hospitalIdx: idx,
+                                    hospitalName: hospital.name,
+                                    dept: dept,
+                                    score: student.hospitalScores.find(h => h.idx === idx).score
+                                });
+                                placed = true;
+                                break;
+                            }
+                        }
+                        if (placed) break;
+                    }
+
+                    if (!placed) {
+                        results.push({
+                            studentId: student.studentId,
+                            name: student.name,
+                            class: student.class,
+                            period: '-',
+                            placementSlot: null,
+                            isMixed: false,
+                            address: student.address,
+                            hospital: '-',
+                            department: '-',
+                            deptKey: null,
+                            score: 0,
+                            status: '미배치'
+                        });
+                    }
                 }
+
+                // 혼합 배치도 교환 개선
+                let improved = true;
+                let iterations = 0;
+                while (improved && iterations < 100) {
+                    improved = false;
+                    iterations++;
+                    for (let i = 0; i < mixedResults.length; i++) {
+                        for (let j = i + 1; j < mixedResults.length; j++) {
+                            const r1 = mixedResults[i];
+                            const r2 = mixedResults[j];
+                            if (r1.dept !== r2.dept) continue;
+
+                            const student1 = unplacedStudents.find(s => s.studentId === r1.studentId);
+                            const student2 = unplacedStudents.find(s => s.studentId === r2.studentId);
+
+                            const currentScore = r1.score + r2.score;
+                            const newScore1 = calculateAddressScore(student1.address, remaining[r2.hospitalIdx].address);
+                            const newScore2 = calculateAddressScore(student2.address, remaining[r1.hospitalIdx].address);
+
+                            if (newScore1 + newScore2 > currentScore) {
+                                const tempIdx = r1.hospitalIdx;
+                                const tempName = r1.hospitalName;
+                                r1.hospitalIdx = r2.hospitalIdx;
+                                r1.hospitalName = r2.hospitalName;
+                                r1.score = newScore1;
+                                r2.hospitalIdx = tempIdx;
+                                r2.hospitalName = tempName;
+                                r2.score = newScore2;
+                                improved = true;
+                            }
+                        }
+                    }
+                }
+
+                mixedResults.forEach(r => {
+                    results.push({
+                        studentId: r.studentId,
+                        name: r.name,
+                        class: r.class,
+                        period: '7-8주차',
+                        placementSlot: 'mixed',
+                        isMixed: true,
+                        address: r.address,
+                        hospital: r.hospitalName,
+                        department: r.dept === 'nicu' ? '신생아실' : '소아과',
+                        deptKey: r.dept,
+                        score: r.score,
+                        status: '배치완료'
+                    });
+                });
             }
 
             return results;
