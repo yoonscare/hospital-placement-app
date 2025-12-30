@@ -591,6 +591,8 @@
                                 <span class="mx-2">|</span>
                                 <button class="filter-btn" data-filter="nicu" onclick="filterResult('nicu')">🍼 신생아실</button>
                                 <button class="filter-btn" data-filter="peds" onclick="filterResult('peds')">👶 소아과</button>
+                                <span class="mx-2">|</span>
+                                <button class="filter-btn text-danger" data-filter="lowscore" onclick="filterResult('lowscore')">⚠️ 원거리 배치</button>
                             </div>
                         </div>
                     </div>
@@ -1195,6 +1197,7 @@
                                     address: student.address,
                                     hospitalIdx: idx,
                                     hospitalName: hospital.name,
+                                    hospitalAddr: hospital.address,
                                     dept: dept,
                                     score: student.hospitalScores.find(h => h.idx === idx).score,
                                     slot: classId
@@ -1266,6 +1269,7 @@
                         isMixed: false,
                         address: r.address,
                         hospital: r.hospitalName,
+                        hospitalAddr: r.hospitalAddr,
                         department: r.dept === 'nicu' ? '신생아실' : '소아과',
                         deptKey: r.dept,
                         score: r.score,
@@ -1311,6 +1315,7 @@
                                     address: student.address,
                                     hospitalIdx: idx,
                                     hospitalName: hospital.name,
+                                    hospitalAddr: hospital.address,
                                     dept: dept,
                                     score: student.hospitalScores.find(h => h.idx === idx).score
                                 });
@@ -1383,6 +1388,7 @@
                         isMixed: true,
                         address: r.address,
                         hospital: r.hospitalName,
+                        hospitalAddr: r.hospitalAddr,
                         department: r.dept === 'nicu' ? '신생아실' : '소아과',
                         deptKey: r.dept,
                         score: r.score,
@@ -1561,11 +1567,39 @@
             const placed = placementResult.filter(r => r.status === '배치완료').length;
             const unplaced = total - placed;
             const rate = total > 0 ? Math.round((placed / total) * 100) : 0;
+            const lowScoreCount = placementResult.filter(r => r.status === '배치완료' && (r.score || 0) < 50).length;
 
             document.getElementById('statTotal').textContent = total;
             document.getElementById('statPlaced').textContent = placed;
             document.getElementById('statUnplaced').textContent = unplaced;
             document.getElementById('statRate').textContent = rate + '%';
+
+            // 원거리 배치 경고
+            const warningDiv = document.getElementById('lowScoreWarning');
+            if (lowScoreCount > 0) {
+                if (!warningDiv) {
+                    const warning = document.createElement('div');
+                    warning.id = 'lowScoreWarning';
+                    warning.className = 'alert alert-warning mb-3';
+                    warning.innerHTML = `
+                        <strong>⚠️ 원거리 배치 ${lowScoreCount}건 발견</strong><br>
+                        <small>학생 주소와 병원 위치가 멀리 떨어진 배치가 있습니다.
+                        "원거리 배치" 필터를 클릭하여 확인하세요.<br>
+                        <strong>원인:</strong> 가까운 병원 티오가 부족하거나, 병원 주소(구/시) 설정이 잘못되었을 수 있습니다.</small>
+                    `;
+                    document.getElementById('statsRow').after(warning);
+                } else {
+                    warningDiv.innerHTML = `
+                        <strong>⚠️ 원거리 배치 ${lowScoreCount}건 발견</strong><br>
+                        <small>학생 주소와 병원 위치가 멀리 떨어진 배치가 있습니다.
+                        "원거리 배치" 필터를 클릭하여 확인하세요.<br>
+                        <strong>원인:</strong> 가까운 병원 티오가 부족하거나, 병원 주소(구/시) 설정이 잘못되었을 수 있습니다.</small>
+                    `;
+                    warningDiv.style.display = 'block';
+                }
+            } else if (warningDiv) {
+                warningDiv.style.display = 'none';
+            }
 
             // 결과 테이블
             filterResult('all');
@@ -1595,6 +1629,9 @@
                 filtered = placementResult.filter(r => !r.isMixed && r.status === '배치완료');
             } else if (filter === 'mixed') {
                 filtered = placementResult.filter(r => r.isMixed);
+            } else if (filter === 'lowscore') {
+                // 낮은 점수 (먼 거리) 배치만 필터
+                filtered = placementResult.filter(r => r.status === '배치완료' && (r.score || 0) < 50);
             } else {
                 // A, B, C 반 필터
                 filtered = placementResult.filter(r => r.class === filter);
@@ -1603,26 +1640,34 @@
             document.getElementById('resultCount').textContent = filtered.length + '명';
 
             const tbody = document.getElementById('resultTableBody');
-            tbody.innerHTML = filtered.map(r => `
-                <tr class="${r.status === '미배치' ? 'table-danger' : r.isMixed ? 'table-warning' : ''}">
+            tbody.innerHTML = filtered.map(r => {
+                const score = r.score || 0;
+                const isLowScore = r.status === '배치완료' && score < 50;
+                const scoreClass = score >= 100 ? 'text-success' : score >= 50 ? 'text-primary' : 'text-danger';
+                const scoreLabel = score >= 100 ? '동일지역' : score >= 50 ? '인접지역' : '원거리⚠️';
+
+                return `
+                <tr class="${r.status === '미배치' ? 'table-danger' : isLowScore ? 'table-warning' : r.isMixed ? 'table-info' : ''}">
                     <td>${r.studentId}</td>
                     <td>${r.name}</td>
                     <td><span class="badge badge-class-${r.class}">${r.class}반</span></td>
                     <td><span class="badge ${r.isMixed ? 'period-mixed' : 'bg-secondary'} period-badge">${r.period}</span></td>
                     <td>${r.address}</td>
-                    <td>${r.hospital}</td>
+                    <td>${r.hospital}${r.hospitalAddr ? `<br><small class="text-muted">(${r.hospitalAddr})</small>` : ''}</td>
                     <td>
                         ${r.department !== '-' ?
                             `<span class="badge ${r.deptKey === 'nicu' ? 'dept-nicu' : 'dept-peds'}">${r.department}</span>`
                             : '-'}
                     </td>
                     <td>
-                        <span class="badge ${r.status === '배치완료' ? (r.isMixed ? 'bg-warning text-dark' : 'bg-success') : 'bg-danger'}">
-                            ${r.status}${r.isMixed ? ' (혼합)' : ''}
-                        </span>
+                        ${r.status === '배치완료' ?
+                            `<span class="badge ${isLowScore ? 'bg-warning text-dark' : 'bg-success'}">${r.isMixed ? '혼합' : '완료'}</span>
+                             <br><small class="${scoreClass}">${scoreLabel}</small>`
+                            : `<span class="badge bg-danger">미배치</span>`
+                        }
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
         function showHospitalSummary() {
