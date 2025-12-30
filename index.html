@@ -301,6 +301,46 @@
             font-weight: 700;
             color: var(--primary-color);
         }
+
+        .order-select-group {
+            text-align: center;
+        }
+
+        .order-select-group label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.75rem;
+        }
+
+        .order-select {
+            width: 80px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .order-arrow {
+            font-size: 1.2rem;
+            color: #64748b;
+            margin: 0 0.25rem;
+            padding-top: 1rem;
+        }
+
+        .fixed-slot {
+            width: 80px;
+            padding: 0.375rem 0.75rem;
+            background: #ede9fe;
+            color: #7c3aed;
+            border-radius: 6px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        .order-warning {
+            color: #dc2626;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -322,23 +362,50 @@
         <!-- 8주 스케줄 안내 -->
         <div class="schedule-info">
             <h6 class="mb-3"><strong>📅 8주 실습 스케줄 (각 반 2주씩 실습)</strong></h6>
-            <div class="d-flex align-items-center justify-content-center flex-wrap">
-                <span class="schedule-item" style="background: #fef3c7; color: #b45309;">
-                    1-2주: C반
-                </span>
-                <span class="mx-1">→</span>
-                <span class="schedule-item" style="background: #dbeafe; color: #1d4ed8;">
-                    3-4주: A반
-                </span>
-                <span class="mx-1">→</span>
-                <span class="schedule-item" style="background: #d1fae5; color: #059669;">
-                    5-6주: B반
-                </span>
-                <span class="mx-1">→</span>
-                <span class="schedule-item" style="background: #ede9fe; color: #7c3aed;">
-                    7-8주: 미배치 학생
-                </span>
+
+            <!-- 반 순서 설정 -->
+            <div class="row justify-content-center mb-3">
+                <div class="col-auto">
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <div class="order-select-group">
+                            <label class="small text-muted">1-2주차</label>
+                            <select class="form-select form-select-sm order-select" id="order1" onchange="updateClassOrder()">
+                                <option value="C">C반</option>
+                                <option value="A">A반</option>
+                                <option value="B">B반</option>
+                            </select>
+                        </div>
+                        <span class="order-arrow">→</span>
+                        <div class="order-select-group">
+                            <label class="small text-muted">3-4주차</label>
+                            <select class="form-select form-select-sm order-select" id="order2" onchange="updateClassOrder()">
+                                <option value="A">A반</option>
+                                <option value="C">C반</option>
+                                <option value="B">B반</option>
+                            </select>
+                        </div>
+                        <span class="order-arrow">→</span>
+                        <div class="order-select-group">
+                            <label class="small text-muted">5-6주차</label>
+                            <select class="form-select form-select-sm order-select" id="order3" onchange="updateClassOrder()">
+                                <option value="B">B반</option>
+                                <option value="C">C반</option>
+                                <option value="A">A반</option>
+                            </select>
+                        </div>
+                        <span class="order-arrow">→</span>
+                        <div class="order-select-group">
+                            <label class="small text-muted">7-8주차</label>
+                            <div class="fixed-slot">혼합</div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- 동적 스케줄 표시 -->
+            <div class="d-flex align-items-center justify-content-center flex-wrap" id="scheduleDisplay">
+            </div>
+
             <p class="text-muted small mt-2 mb-0 text-center">
                 각 학생은 <strong>2주간</strong> 배정된 병원의
                 <span class="badge dept-nicu">신생아실</span> 또는
@@ -612,21 +679,116 @@
         // 반 목록 (학생 소속)
         const STUDENT_CLASSES = ['C', 'A', 'B'];
 
-        // 티오 슬롯 (배치 기간)
-        const PLACEMENT_SLOTS = ['C', 'A', 'B', 'mixed'];
+        // 반 순서 설정 (사용자 지정 가능)
+        let classOrder = ['C', 'A', 'B']; // 기본값: C → A → B → 혼합
 
-        // 반별 실습 기간
-        const CLASS_PERIODS = {
-            'C': '1-2주차',
-            'A': '3-4주차',
-            'B': '5-6주차'
+        // 반별 스타일
+        const CLASS_STYLES = {
+            'C': { bg: '#fef3c7', color: '#b45309', headerClass: 'class-header-C' },
+            'A': { bg: '#dbeafe', color: '#1d4ed8', headerClass: 'class-header-A' },
+            'B': { bg: '#d1fae5', color: '#059669', headerClass: 'class-header-B' }
         };
+
+        // 동적으로 계산되는 값들
+        function getPlacementSlots() {
+            return [...classOrder, 'mixed'];
+        }
+
+        function getClassPeriods() {
+            const periods = {};
+            classOrder.forEach((cls, idx) => {
+                const weekStart = idx * 2 + 1;
+                const weekEnd = weekStart + 1;
+                periods[cls] = `${weekStart}-${weekEnd}주차`;
+            });
+            return periods;
+        }
 
         // ====== 초기화 ======
         document.addEventListener('DOMContentLoaded', function() {
+            loadClassOrder();
             loadHospitals();
             initDragDrop();
+            updateScheduleDisplay();
         });
+
+        // ====== 반 순서 관리 ======
+        function loadClassOrder() {
+            const saved = localStorage.getItem('classOrder');
+            if (saved) {
+                classOrder = JSON.parse(saved);
+                // 드롭다운 값 설정
+                document.getElementById('order1').value = classOrder[0];
+                document.getElementById('order2').value = classOrder[1];
+                document.getElementById('order3').value = classOrder[2];
+            }
+        }
+
+        function updateClassOrder() {
+            const order1 = document.getElementById('order1').value;
+            const order2 = document.getElementById('order2').value;
+            const order3 = document.getElementById('order3').value;
+
+            // 중복 체크
+            const orders = [order1, order2, order3];
+            const unique = new Set(orders);
+
+            if (unique.size !== 3) {
+                // 중복이 있으면 경고 표시
+                showOrderWarning('각 주차에 서로 다른 반을 선택해주세요.');
+                return;
+            }
+
+            hideOrderWarning();
+            classOrder = orders;
+            localStorage.setItem('classOrder', JSON.stringify(classOrder));
+
+            // UI 업데이트
+            updateScheduleDisplay();
+            renderHospitalTable();
+            updateCapacitySummary();
+        }
+
+        function showOrderWarning(msg) {
+            let warning = document.getElementById('orderWarning');
+            if (!warning) {
+                warning = document.createElement('div');
+                warning.id = 'orderWarning';
+                warning.className = 'order-warning text-center';
+                document.getElementById('scheduleDisplay').after(warning);
+            }
+            warning.textContent = '⚠️ ' + msg;
+            warning.style.display = 'block';
+        }
+
+        function hideOrderWarning() {
+            const warning = document.getElementById('orderWarning');
+            if (warning) warning.style.display = 'none';
+        }
+
+        function updateScheduleDisplay() {
+            const container = document.getElementById('scheduleDisplay');
+            const periods = getClassPeriods();
+
+            let html = '';
+            classOrder.forEach((cls, idx) => {
+                const style = CLASS_STYLES[cls];
+                const weekStart = idx * 2 + 1;
+                const weekEnd = weekStart + 1;
+
+                if (idx > 0) html += '<span class="mx-1">→</span>';
+                html += `<span class="schedule-item" style="background: ${style.bg}; color: ${style.color};">
+                    ${weekStart}-${weekEnd}주: ${cls}반
+                </span>`;
+            });
+
+            html += '<span class="mx-1">→</span>';
+            html += `<span class="schedule-item" style="background: #ede9fe; color: #7c3aed;">
+                7-8주: 미배치 학생
+            </span>`;
+
+            container.innerHTML = html;
+        }
 
         // ====== 병원 관리 ======
         const defaultHospitals = [
@@ -680,26 +842,68 @@
         }
 
         function renderHospitalTable() {
+            // 테이블 헤더도 동적으로 업데이트
+            updateTableHeaders();
+
             const tbody = document.getElementById('hospitalTableBody');
-            tbody.innerHTML = hospitals.map((h, idx) => `
-                <tr>
+            const slots = getPlacementSlots();
+
+            tbody.innerHTML = hospitals.map((h, idx) => {
+                let cellsHtml = `
                     <td class="hospital-name-cell">
                         <input type="text" value="${h.name}" onchange="updateHospital(${idx}, 'name', this.value)" placeholder="병원명">
                     </td>
                     <td class="hospital-addr-cell">
                         <input type="text" value="${h.address}" onchange="updateHospital(${idx}, 'address', this.value)" placeholder="구">
                     </td>
-                    <td class="to-cell nicu-col"><input type="number" min="0" value="${h.C_nicu}" onchange="updateHospital(${idx}, 'C_nicu', this.value)"></td>
-                    <td class="to-cell peds-col"><input type="number" min="0" value="${h.C_peds}" onchange="updateHospital(${idx}, 'C_peds', this.value)"></td>
-                    <td class="to-cell nicu-col"><input type="number" min="0" value="${h.A_nicu}" onchange="updateHospital(${idx}, 'A_nicu', this.value)"></td>
-                    <td class="to-cell peds-col"><input type="number" min="0" value="${h.A_peds}" onchange="updateHospital(${idx}, 'A_peds', this.value)"></td>
-                    <td class="to-cell nicu-col"><input type="number" min="0" value="${h.B_nicu}" onchange="updateHospital(${idx}, 'B_nicu', this.value)"></td>
-                    <td class="to-cell peds-col"><input type="number" min="0" value="${h.B_peds}" onchange="updateHospital(${idx}, 'B_peds', this.value)"></td>
-                    <td class="to-cell nicu-col"><input type="number" min="0" value="${h.mixed_nicu}" onchange="updateHospital(${idx}, 'mixed_nicu', this.value)"></td>
-                    <td class="to-cell peds-col"><input type="number" min="0" value="${h.mixed_peds}" onchange="updateHospital(${idx}, 'mixed_peds', this.value)"></td>
-                    <td><button class="btn btn-sm btn-outline-danger" onclick="removeHospital(${idx})">✕</button></td>
-                </tr>
-            `).join('');
+                `;
+
+                // 순서에 따라 셀 생성
+                slots.forEach(slot => {
+                    cellsHtml += `
+                        <td class="to-cell nicu-col"><input type="number" min="0" value="${h[`${slot}_nicu`] || 0}" onchange="updateHospital(${idx}, '${slot}_nicu', this.value)"></td>
+                        <td class="to-cell peds-col"><input type="number" min="0" value="${h[`${slot}_peds`] || 0}" onchange="updateHospital(${idx}, '${slot}_peds', this.value)"></td>
+                    `;
+                });
+
+                cellsHtml += `<td><button class="btn btn-sm btn-outline-danger" onclick="removeHospital(${idx})">✕</button></td>`;
+
+                return `<tr>${cellsHtml}</tr>`;
+            }).join('');
+        }
+
+        function updateTableHeaders() {
+            const thead = document.querySelector('#hospitalTable thead');
+            const slots = getPlacementSlots();
+
+            // 첫 번째 행 (반 헤더)
+            let headerRow1 = `
+                <th rowspan="2" class="align-middle text-center" style="min-width:120px;">병원명</th>
+                <th rowspan="2" class="align-middle text-center" style="min-width:100px;">주소(구)</th>
+            `;
+
+            slots.forEach((slot, idx) => {
+                if (slot === 'mixed') {
+                    headerRow1 += `<th colspan="2" class="class-header class-header-mixed">7-8주 (혼합)</th>`;
+                } else {
+                    const weekStart = idx * 2 + 1;
+                    const weekEnd = weekStart + 1;
+                    headerRow1 += `<th colspan="2" class="class-header class-header-${slot}">${slot}반 (${weekStart}-${weekEnd}주)</th>`;
+                }
+            });
+
+            headerRow1 += `<th rowspan="2" class="align-middle text-center" style="width:40px;"></th>`;
+
+            // 두 번째 행 (신생/소아)
+            let headerRow2 = '';
+            slots.forEach(() => {
+                headerRow2 += `
+                    <th class="dept-sub-header nicu-col">신생</th>
+                    <th class="dept-sub-header peds-col">소아</th>
+                `;
+            });
+
+            thead.innerHTML = `<tr>${headerRow1}</tr><tr>${headerRow2}</tr>`;
         }
 
         function updateHospital(idx, field, value) {
@@ -712,13 +916,14 @@
         }
 
         function updateCapacitySummary() {
+            const slots = getPlacementSlots();
             const summary = {};
-            PLACEMENT_SLOTS.forEach(slot => {
+            slots.forEach(slot => {
                 summary[slot] = { nicu: 0, peds: 0, total: 0 };
             });
 
             hospitals.forEach(h => {
-                PLACEMENT_SLOTS.forEach(slot => {
+                slots.forEach(slot => {
                     const nicu = h[`${slot}_nicu`] || 0;
                     const peds = h[`${slot}_peds`] || 0;
                     summary[slot].nicu += nicu;
@@ -727,15 +932,17 @@
                 });
             });
 
-            const slotLabels = {
-                'C': 'C반 (1-2주)',
-                'A': 'A반 (3-4주)',
-                'B': 'B반 (5-6주)',
-                'mixed': '7-8주 (혼합)'
-            };
+            // 동적 라벨 생성
+            const slotLabels = {};
+            classOrder.forEach((cls, idx) => {
+                const weekStart = idx * 2 + 1;
+                const weekEnd = weekStart + 1;
+                slotLabels[cls] = `${cls}반 (${weekStart}-${weekEnd}주)`;
+            });
+            slotLabels['mixed'] = '7-8주 (혼합)';
 
             const container = document.getElementById('capacitySummary');
-            container.innerHTML = PLACEMENT_SLOTS.map(slot => {
+            container.innerHTML = slots.map(slot => {
                 return `
                     <div class="capacity-box class-${slot}">
                         <div class="class-name">${slotLabels[slot]}</div>
@@ -921,11 +1128,13 @@
         function performPlacement() {
             const results = [];
             const unplacedStudents = [];
+            const slots = getPlacementSlots();
+            const CLASS_PERIODS = getClassPeriods();
 
             // 병원별 잔여 정원 복사
             const remaining = hospitals.map(h => {
                 const r = { name: h.name, address: h.address, originalIdx: hospitals.indexOf(h) };
-                PLACEMENT_SLOTS.forEach(slot => {
+                slots.forEach(slot => {
                     r[`${slot}_nicu`] = h[`${slot}_nicu`] || 0;
                     r[`${slot}_peds`] = h[`${slot}_peds`] || 0;
                 });
@@ -941,8 +1150,8 @@
                 }
             });
 
-            // 1단계: 정규 기간 배치 (최적화 알고리즘 적용)
-            for (const classId of STUDENT_CLASSES) {
+            // 1단계: 정규 기간 배치 (설정된 순서대로 - classOrder 사용)
+            for (const classId of classOrder) {
                 const classStudents = studentsByClass[classId];
                 if (classStudents.length === 0) continue;
 
@@ -1323,11 +1532,15 @@
         }
 
         function showHospitalSummary() {
+            const slots = getPlacementSlots();
             const summary = {};
+
+            // 결과 테이블 헤더도 동적 업데이트
+            updateResultTableHeaders();
 
             hospitals.forEach(h => {
                 summary[h.name] = {};
-                PLACEMENT_SLOTS.forEach(slot => {
+                slots.forEach(slot => {
                     summary[h.name][slot] = {
                         nicu: { placed: 0, total: h[`${slot}_nicu`] || 0 },
                         peds: { placed: 0, total: h[`${slot}_peds`] || 0 }
@@ -1353,7 +1566,7 @@
                 let totalPlaced = 0;
                 let cells = '';
 
-                PLACEMENT_SLOTS.forEach(slot => {
+                slots.forEach(slot => {
                     const nicu = data[slot].nicu;
                     const peds = data[slot].peds;
                     totalPlaced += nicu.placed + peds.placed;
@@ -1381,6 +1594,35 @@
             }).join('');
         }
 
+        function updateResultTableHeaders() {
+            const thead = document.querySelector('#hospitalSummaryTable thead');
+            if (!thead) return;
+
+            const slots = getPlacementSlots();
+
+            // 동적 라벨 생성
+            let headerRow1 = '<th rowspan="2" class="align-middle text-center">병원명</th>';
+            let headerRow2 = '';
+
+            slots.forEach((slot, idx) => {
+                if (slot === 'mixed') {
+                    headerRow1 += `<th colspan="2" class="text-center class-header-mixed">7-8주 (혼합)</th>`;
+                } else {
+                    const weekStart = idx * 2 + 1;
+                    const weekEnd = weekStart + 1;
+                    headerRow1 += `<th colspan="2" class="text-center class-header-${slot}">${slot}반 (${weekStart}-${weekEnd}주)</th>`;
+                }
+                headerRow2 += `
+                    <th class="text-center" style="font-size:0.7rem;">신생</th>
+                    <th class="text-center" style="font-size:0.7rem;">소아</th>
+                `;
+            });
+
+            headerRow1 += '<th rowspan="2" class="align-middle text-center">총계</th>';
+
+            thead.innerHTML = `<tr>${headerRow1}</tr><tr>${headerRow2}</tr>`;
+        }
+
         // ====== 결과 다운로드 ======
         function downloadResult() {
             if (placementResult.length === 0) {
@@ -1405,11 +1647,20 @@
 
             // 병원별 요약 시트
             const summaryData = [];
-            const slotLabels = { 'C': 'C반(1-2주)', 'A': 'A반(3-4주)', 'B': 'B반(5-6주)', 'mixed': '7-8주(혼합)' };
+            const slots = getPlacementSlots();
+
+            // 동적 라벨 생성
+            const slotLabels = {};
+            classOrder.forEach((cls, idx) => {
+                const weekStart = idx * 2 + 1;
+                const weekEnd = weekStart + 1;
+                slotLabels[cls] = `${cls}반(${weekStart}-${weekEnd}주)`;
+            });
+            slotLabels['mixed'] = '7-8주(혼합)';
 
             hospitals.forEach(h => {
                 const row = { '병원명': h.name };
-                PLACEMENT_SLOTS.forEach(slot => {
+                slots.forEach(slot => {
                     const placed = placementResult.filter(r => r.hospital === h.name && r.placementSlot === slot);
                     row[`${slotLabels[slot]}_신생아실`] = `${placed.filter(r => r.deptKey === 'nicu').length}/${h[`${slot}_nicu`] || 0}`;
                     row[`${slotLabels[slot]}_소아과`] = `${placed.filter(r => r.deptKey === 'peds').length}/${h[`${slot}_peds`] || 0}`;
