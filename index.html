@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스마트 실습 배치 시스템</title>
+    <title>임상실습 배치 시스템 | 간호학과</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
-            --primary-color: #8b5cf6;
-            --primary-dark: #7c3aed;
-            --primary-light: #a78bfa;
-            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --bg-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
         }
 
         * {
@@ -27,13 +27,24 @@
         .header {
             background: var(--bg-gradient);
             color: white;
-            padding: 2rem 0;
+            padding: 1.5rem 0;
             margin-bottom: 2rem;
         }
 
         .header h1 {
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
+            font-size: 1.75rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .header-actions .btn {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.85rem;
         }
 
         .card {
@@ -64,7 +75,7 @@
         .upload-zone {
             border: 2px dashed #cbd5e1;
             border-radius: 12px;
-            padding: 3rem 2rem;
+            padding: 2.5rem 2rem;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -73,7 +84,39 @@
 
         .upload-zone:hover, .upload-zone.dragover {
             border-color: var(--primary-color);
-            background: #faf5ff;
+            background: #eef2ff;
+        }
+
+        .setting-input {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .dept-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            margin: 0.25rem;
+            font-size: 0.85rem;
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .dept-tag button {
+            background: none;
+            border: none;
+            color: #6366f1;
+            margin-left: 0.5rem;
+            cursor: pointer;
+            font-weight: bold;
         }
 
         .hospital-table {
@@ -89,7 +132,7 @@
         }
 
         .hospital-table input[type="number"] {
-            width: 45px;
+            width: 50px;
             border: 1px solid #e2e8f0;
             border-radius: 4px;
             padding: 0.25rem;
@@ -100,7 +143,7 @@
         .hospital-table input:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
         }
 
         .stat-card {
@@ -124,19 +167,6 @@
 
         .result-table {
             font-size: 0.85rem;
-        }
-
-        .badge-class-A { background: #3b82f6; }
-        .badge-class-B { background: #10b981; }
-        .badge-class-C { background: #f59e0b; }
-
-        .period-badge {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-        }
-
-        .period-mixed {
-            background: #8b5cf6 !important;
         }
 
         .loading-overlay {
@@ -173,8 +203,9 @@
         .nav-tabs .nav-link {
             color: #64748b;
             border: none;
-            padding: 1rem 1.5rem;
+            padding: 1rem 1.25rem;
             font-weight: 500;
+            font-size: 0.9rem;
         }
 
         .nav-tabs .nav-link.active {
@@ -183,7 +214,62 @@
             background: transparent;
         }
 
-        .schedule-info {
+        .filter-btn {
+            border: 1px solid #e2e8f0;
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .table-scroll-wrapper {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        .capacity-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .capacity-box {
+            background: white;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            min-width: 120px;
+        }
+
+        .capacity-box .class-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .capacity-box .capacity-total {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .capacity-box .capacity-detail {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .schedule-preview {
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
             border-radius: 12px;
             padding: 1.25rem;
@@ -197,149 +283,159 @@
             border-radius: 20px;
             font-weight: 600;
             margin: 0.25rem;
+            font-size: 0.85rem;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            border-radius: 8px;
+            padding: 1rem;
             font-size: 0.9rem;
         }
 
-        .dept-nicu {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .dept-peds {
-            background: #dbeafe;
-            color: #2563eb;
-        }
-
-        .filter-btn {
-            border: 1px solid #e2e8f0;
-            background: white;
-            padding: 0.5rem 1rem;
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            color: #92400e;
             border-radius: 8px;
-            margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
-            transition: all 0.2s;
+            padding: 1rem;
+            font-size: 0.9rem;
         }
 
-        .filter-btn:hover, .filter-btn.active {
+        .success-box {
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            color: #065f46;
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .preset-btn {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            transition: all 0.2s;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--primary-color);
+            background: #eef2ff;
+        }
+
+        .preset-btn .preset-title {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .preset-btn .preset-desc {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
             background: var(--primary-color);
             color: white;
-            border-color: var(--primary-color);
-        }
-
-        .class-header {
-            text-align: center;
-            font-weight: 600;
             font-size: 0.75rem;
-            padding: 0.5rem !important;
+            font-weight: 600;
+            margin-right: 0.5rem;
         }
 
-        .class-header-C { background: #fef3c7 !important; }
-        .class-header-A { background: #dbeafe !important; }
-        .class-header-B { background: #d1fae5 !important; }
-        .class-header-mixed { background: #ede9fe !important; }
-
-        .dept-sub-header {
-            font-size: 0.65rem;
-            text-align: center;
-            padding: 0.25rem !important;
+        .help-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            cursor: pointer;
+            z-index: 1000;
         }
 
-        .nicu-col { background: #fff5f5 !important; }
-        .peds-col { background: #f0f9ff !important; }
-
-        .to-cell {
-            padding: 0.25rem !important;
-            text-align: center;
+        .help-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
         }
 
-        .hospital-name-cell {
-            min-width: 120px;
+        .modal-header {
+            background: var(--bg-gradient);
+            color: white;
         }
 
-        .hospital-addr-cell {
-            min-width: 100px;
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
         }
 
-        .table-scroll-wrapper {
-            overflow-x: auto;
-            max-width: 100%;
+        .guide-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
         }
 
-        .capacity-summary {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
+        .guide-step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .guide-step-number {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-right: 1rem;
+        }
+
+        .guide-step-content h6 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .class-group-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .current-settings {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1rem;
             margin-top: 1rem;
         }
 
-        .capacity-box {
-            background: white;
-            border-radius: 8px;
-            padding: 0.75rem;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-        }
-
-        .capacity-box.class-C { border-left: 4px solid #f59e0b; }
-        .capacity-box.class-A { border-left: 4px solid #3b82f6; }
-        .capacity-box.class-B { border-left: 4px solid #10b981; }
-        .capacity-box.class-mixed { border-left: 4px solid #8b5cf6; }
-
-        .capacity-box .class-name {
-            font-weight: 600;
+        .current-settings h6 {
             font-size: 0.85rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .capacity-box .capacity-detail {
-            font-size: 0.75rem;
             color: #64748b;
-        }
-
-        .capacity-box .capacity-total {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-
-        .order-select-group {
-            text-align: center;
-        }
-
-        .order-select-group label {
-            display: block;
-            margin-bottom: 0.25rem;
-            font-size: 0.75rem;
-        }
-
-        .order-select {
-            width: 80px;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .order-arrow {
-            font-size: 1.2rem;
-            color: #64748b;
-            margin: 0 0.25rem;
-            padding-top: 1rem;
-        }
-
-        .fixed-slot {
-            width: 80px;
-            padding: 0.375rem 0.75rem;
-            background: #ede9fe;
-            color: #7c3aed;
-            border-radius: 6px;
-            font-weight: 600;
-            text-align: center;
-            font-size: 0.875rem;
-        }
-
-        .order-warning {
-            color: #dc2626;
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
         }
     </style>
 </head>
@@ -353,135 +449,216 @@
 
     <header class="header">
         <div class="container">
-            <h1>🏥 스마트 실습 배치 시스템</h1>
-            <p class="mb-0 opacity-75">공정하고 효율적인 실습 병원 배정</p>
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h1>🏥 임상실습 배치 시스템</h1>
+                    <p class="mb-0 opacity-75 small">모든 실습과목을 위한 스마트 병원 배정</p>
+                </div>
+                <div class="header-actions mt-2 mt-md-0">
+                    <button class="btn btn-outline-light btn-sm" onclick="exportAllSettings()">
+                        📤 설정 내보내기
+                    </button>
+                    <button class="btn btn-outline-light btn-sm" onclick="document.getElementById('importFile').click()">
+                        📥 설정 가져오기
+                    </button>
+                    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importSettings(event)">
+                    <button class="btn btn-light btn-sm" onclick="showGuide()">
+                        ❓ 사용법
+                    </button>
+                </div>
+            </div>
         </div>
     </header>
 
     <div class="container pb-5">
-        <!-- 8주 스케줄 안내 -->
-        <div class="schedule-info">
-            <h6 class="mb-3"><strong>📅 8주 실습 스케줄 (각 반 2주씩 실습)</strong></h6>
-
-            <!-- 반 순서 설정 -->
-            <div class="row justify-content-center mb-3">
-                <div class="col-auto">
-                    <div class="d-flex align-items-center flex-wrap gap-2">
-                        <div class="order-select-group">
-                            <label class="small text-muted">1-2주차</label>
-                            <select class="form-select form-select-sm order-select" id="order1" onchange="updateClassOrder()">
-                                <option value="C">C반</option>
-                                <option value="A">A반</option>
-                                <option value="B">B반</option>
-                            </select>
-                        </div>
-                        <span class="order-arrow">→</span>
-                        <div class="order-select-group">
-                            <label class="small text-muted">3-4주차</label>
-                            <select class="form-select form-select-sm order-select" id="order2" onchange="updateClassOrder()">
-                                <option value="A">A반</option>
-                                <option value="C">C반</option>
-                                <option value="B">B반</option>
-                            </select>
-                        </div>
-                        <span class="order-arrow">→</span>
-                        <div class="order-select-group">
-                            <label class="small text-muted">5-6주차</label>
-                            <select class="form-select form-select-sm order-select" id="order3" onchange="updateClassOrder()">
-                                <option value="B">B반</option>
-                                <option value="C">C반</option>
-                                <option value="A">A반</option>
-                            </select>
-                        </div>
-                        <span class="order-arrow">→</span>
-                        <div class="order-select-group">
-                            <label class="small text-muted">7-8주차</label>
-                            <div class="fixed-slot">혼합</div>
-                        </div>
-                    </div>
+        <!-- 현재 설정 요약 -->
+        <div class="info-box mb-4" id="currentSettingSummary">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <strong id="summarySubject">설정 필요</strong>
+                    <span class="text-muted mx-2">|</span>
+                    <span id="summaryClasses">분반: -</span>
+                    <span class="text-muted mx-2">|</span>
+                    <span id="summaryDepts">병동: -</span>
+                    <span class="text-muted mx-2">|</span>
+                    <span id="summaryHospitals">병원: 0개</span>
                 </div>
+                <button class="btn btn-sm btn-outline-primary mt-2 mt-md-0" onclick="document.getElementById('setup-tab').click()">
+                    설정 변경
+                </button>
             </div>
-
-            <!-- 동적 스케줄 표시 -->
-            <div class="d-flex align-items-center justify-content-center flex-wrap" id="scheduleDisplay">
-            </div>
-
-            <p class="text-muted small mt-2 mb-0 text-center">
-                각 학생은 <strong>2주간</strong> 배정된 병원의
-                <span class="badge dept-nicu">신생아실</span> 또는
-                <span class="badge dept-peds">소아과</span> 중 <strong>한 곳</strong>에서 실습합니다.
-                <br>정규 기간에 배치되지 못한 학생은 7-8주차에 혼합 배치됩니다.
-            </p>
         </div>
 
         <!-- 탭 네비게이션 -->
         <ul class="nav nav-tabs mb-4" id="mainTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="hospital-tab" data-bs-toggle="tab" data-bs-target="#hospital-panel" type="button">
-                    1️⃣ 병원 티오 설정
+                <button class="nav-link active" id="setup-tab" data-bs-toggle="tab" data-bs-target="#setup-panel" type="button">
+                    <span class="step-badge">1</span> 과목 설정
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="hospital-tab" data-bs-toggle="tab" data-bs-target="#hospital-panel" type="button">
+                    <span class="step-badge">2</span> 병원 티오
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-panel" type="button">
-                    2️⃣ 학생 업로드
+                    <span class="step-badge">3</span> 학생 업로드
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="result-tab" data-bs-toggle="tab" data-bs-target="#result-panel" type="button">
-                    3️⃣ 배치 결과
+                    <span class="step-badge">4</span> 배치 결과
                 </button>
             </li>
         </ul>
 
         <div class="tab-content" id="mainTabContent">
-            <!-- 병원 설정 탭 -->
-            <div class="tab-pane fade show active" id="hospital-panel" role="tabpanel">
+            <!-- 과목/분반 설정 탭 -->
+            <div class="tab-pane fade show active" id="setup-panel" role="tabpanel">
+                <!-- 빠른 설정 프리셋 -->
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>🏥 실습 병원 및 반별 티오 설정</span>
-                        <button class="btn btn-sm btn-outline-primary" onclick="addHospitalRow()">
-                            + 병원 추가
-                        </button>
+                    <div class="card-header">⚡ 빠른 설정 (프리셋 선택)</div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-md-4 col-6">
+                                <button class="preset-btn" onclick="applyPreset('pediatric')">
+                                    <div class="preset-title">👶 아동간호학실습</div>
+                                    <div class="preset-desc">A/B/C반, 신생아실/소아과</div>
+                                </button>
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <button class="preset-btn" onclick="applyPreset('adult')">
+                                    <div class="preset-title">🏥 성인간호학실습</div>
+                                    <div class="preset-desc">A/B/C반, 내과/외과병동</div>
+                                </button>
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <button class="preset-btn" onclick="applyPreset('psychiatric')">
+                                    <div class="preset-title">🧠 정신간호학실습</div>
+                                    <div class="preset-desc">A/B반, 폐쇄/개방병동</div>
+                                </button>
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <button class="preset-btn" onclick="applyPreset('maternity')">
+                                    <div class="preset-title">🤰 모성간호학실습</div>
+                                    <div class="preset-desc">A/B/C반, 분만실/산후조리</div>
+                                </button>
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <button class="preset-btn" onclick="applyPreset('community')">
+                                    <div class="preset-title">🏘️ 지역사회간호학실습</div>
+                                    <div class="preset-desc">A/B반, 보건소/방문간호</div>
+                                </button>
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <button class="preset-btn" onclick="applyPreset('custom')">
+                                    <div class="preset-title">✏️ 직접 설정</div>
+                                    <div class="preset-desc">과목/분반/병동 직접 입력</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">📚 실습과목 기본 설정</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">과목명 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control setting-input" id="subjectName"
+                                       placeholder="예: 성인간호학실습" value="" onchange="updateSummary()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">전체 실습 주차</label>
+                                <input type="number" class="form-control setting-input" id="totalWeeks"
+                                       min="1" max="16" value="8" onchange="updateScheduleDisplay()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">분반당 실습 주</label>
+                                <input type="number" class="form-control setting-input" id="weeksPerClass"
+                                       min="1" max="8" value="2" onchange="updateScheduleDisplay()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>👥 분반 설정</span>
+                                <button class="btn btn-sm btn-outline-primary" onclick="addClassGroup()">+ 추가</button>
+                            </div>
+                            <div class="card-body">
+                                <div id="classGroupList"></div>
+                                <div class="mt-2">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="addPresetClasses('ABC')">A,B,C반</button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="addPresetClasses('ABCD')">A,B,C,D반</button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="addPresetClasses('12')">1,2분반</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>🏥 실습 병동/부서</span>
+                                <button class="btn btn-sm btn-outline-primary" onclick="addDepartment()">+ 추가</button>
+                            </div>
+                            <div class="card-body">
+                                <div id="departmentList" class="mb-2"></div>
+                                <div class="mt-2">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="addPresetDepts('peds')">신생아실/소아과</button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="addPresetDepts('adult')">내과/외과</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 스케줄 미리보기 -->
+                <div class="schedule-preview" id="schedulePreview">
+                    <h6 class="mb-3"><strong>📅 실습 스케줄 미리보기</strong></h6>
+                    <div id="scheduleDisplay"></div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-outline-secondary" onclick="resetSettings()">초기화</button>
+                    <button class="btn btn-primary btn-lg" onclick="saveAndNext()">설정 완료 → 병원 티오 설정</button>
+                </div>
+            </div>
+
+            <!-- 병원 설정 탭 -->
+            <div class="tab-pane fade" id="hospital-panel" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                        <span>🏥 실습 병원 및 티오 설정</span>
+                        <div class="mt-2 mt-md-0">
+                            <button class="btn btn-sm btn-outline-secondary me-1" onclick="downloadHospitalTemplate()">📋 템플릿 다운로드</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="addHospitalRow()">+ 병원 추가</button>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted small mb-3">
-                            💡 각 병원의 <strong>반별 · 부서별</strong> 정원(티오)을 입력하세요. <strong>7-8주차</strong>는 정규 기간에 배치되지 못한 학생들을 위한 추가 티오입니다.
-                        </p>
+                        <div class="info-box mb-3">
+                            💡 각 병원의 <strong>분반별 × 병동별</strong> 정원(티오)을 입력하세요.
+                        </div>
                         <div class="table-scroll-wrapper">
                             <table class="table table-bordered hospital-table mb-0" id="hospitalTable">
-                                <thead>
-                                    <tr>
-                                        <th rowspan="2" class="align-middle text-center" style="min-width:120px;">병원명</th>
-                                        <th rowspan="2" class="align-middle text-center" style="min-width:100px;">주소(구)</th>
-                                        <th colspan="2" class="class-header class-header-C">C반 (1-2주)</th>
-                                        <th colspan="2" class="class-header class-header-A">A반 (3-4주)</th>
-                                        <th colspan="2" class="class-header class-header-B">B반 (5-6주)</th>
-                                        <th colspan="2" class="class-header class-header-mixed">7-8주 (혼합)</th>
-                                        <th rowspan="2" class="align-middle text-center" style="width:40px;"></th>
-                                    </tr>
-                                    <tr>
-                                        <th class="dept-sub-header nicu-col">신생</th>
-                                        <th class="dept-sub-header peds-col">소아</th>
-                                        <th class="dept-sub-header nicu-col">신생</th>
-                                        <th class="dept-sub-header peds-col">소아</th>
-                                        <th class="dept-sub-header nicu-col">신생</th>
-                                        <th class="dept-sub-header peds-col">소아</th>
-                                        <th class="dept-sub-header nicu-col">신생</th>
-                                        <th class="dept-sub-header peds-col">소아</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="hospitalTableBody">
-                                </tbody>
+                                <thead id="hospitalTableHead"></thead>
+                                <tbody id="hospitalTableBody"></tbody>
                             </table>
                         </div>
 
-                        <!-- 반별 정원 요약 -->
-                        <div class="capacity-summary" id="capacitySummary">
-                        </div>
+                        <div class="capacity-summary" id="capacitySummary"></div>
 
-                        <div class="text-end mt-3">
-                            <button class="btn btn-outline-secondary me-2" onclick="resetHospitals()">초기화</button>
-                            <button class="btn btn-primary" onclick="saveHospitals()">💾 병원 설정 저장</button>
+                        <div class="d-flex justify-content-between mt-3">
+                            <button class="btn btn-outline-secondary" onclick="resetHospitals()">초기화</button>
+                            <div>
+                                <button class="btn btn-outline-primary me-2" onclick="saveHospitals()">💾 저장</button>
+                                <button class="btn btn-primary btn-lg" onclick="saveHospitalsAndNext()">완료 → 학생 업로드</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -490,38 +667,32 @@
             <!-- 학생 업로드 탭 -->
             <div class="tab-pane fade" id="upload-panel" role="tabpanel">
                 <div class="card">
-                    <div class="card-header">📄 학생 명단 업로드</div>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>📄 학생 명단 업로드</span>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="downloadStudentTemplate()">📋 학생 템플릿 다운로드</button>
+                    </div>
                     <div class="card-body">
                         <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
                             <div class="mb-3">
-                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                     <polyline points="17 8 12 3 7 8"></polyline>
                                     <line x1="12" y1="3" x2="12" y2="15"></line>
                                 </svg>
                             </div>
                             <h5>엑셀 파일을 드래그하거나 클릭하여 업로드</h5>
-                            <p class="text-muted mb-0">지원 형식: .xlsx, .xls, .csv</p>
+                            <p class="text-muted mb-0 small">지원 형식: .xlsx, .xls, .csv</p>
                         </div>
                         <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display: none;" onchange="handleFileUpload(event)">
 
-                        <div class="alert alert-info mt-4">
-                            <h6 class="alert-heading">📋 필수 컬럼</h6>
-                            <ul class="mb-0">
-                                <li><strong>학번</strong> - 학생 학번</li>
-                                <li><strong>이름</strong> - 학생 이름</li>
-                                <li><strong>반</strong> - A, B, C 중 하나</li>
-                                <li><strong>주소</strong> - 거주지 주소 (구/동 포함)</li>
-                            </ul>
+                        <div class="info-box mt-3">
+                            <strong>📋 필수 컬럼:</strong> 학번, 이름, 반 (<span id="validClassNames">A/B/C</span>), 주소 (구/시 포함)
                         </div>
 
                         <div id="uploadPreview" style="display: none;">
                             <h5 class="mt-4 mb-3">📊 업로드된 학생 명단</h5>
-
-                            <!-- 반별 학생 수 요약 -->
                             <div class="row mb-3" id="classSummary"></div>
-
-                            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
                                 <table class="table table-sm table-bordered" id="previewTable">
                                     <thead class="table-light" style="position: sticky; top: 0;">
                                         <tr>
@@ -548,7 +719,6 @@
             <!-- 배치 결과 탭 -->
             <div class="tab-pane fade" id="result-panel" role="tabpanel">
                 <div id="resultContent" style="display: none;">
-                    <!-- 통계 카드 -->
                     <div class="row mb-4" id="statsRow">
                         <div class="col-md-3 col-6 mb-3">
                             <div class="stat-card">
@@ -576,82 +746,35 @@
                         </div>
                     </div>
 
-                    <!-- 필터 -->
                     <div class="card mb-3">
                         <div class="card-body py-3">
-                            <div class="d-flex flex-wrap align-items-center">
+                            <div class="d-flex flex-wrap align-items-center" id="filterButtons">
                                 <span class="me-3 fw-bold">필터:</span>
-                                <button class="filter-btn active" data-filter="all" onclick="filterResult('all')">전체</button>
-                                <button class="filter-btn" data-filter="C" onclick="filterResult('C')">C반</button>
-                                <button class="filter-btn" data-filter="A" onclick="filterResult('A')">A반</button>
-                                <button class="filter-btn" data-filter="B" onclick="filterResult('B')">B반</button>
-                                <span class="mx-2">|</span>
-                                <button class="filter-btn" data-filter="regular" onclick="filterResult('regular')">정규배치</button>
-                                <button class="filter-btn" data-filter="mixed" onclick="filterResult('mixed')">7-8주 혼합</button>
-                                <span class="mx-2">|</span>
-                                <button class="filter-btn" data-filter="nicu" onclick="filterResult('nicu')">🍼 신생아실</button>
-                                <button class="filter-btn" data-filter="peds" onclick="filterResult('peds')">👶 소아과</button>
-                                <span class="mx-2">|</span>
-                                <button class="filter-btn text-danger" data-filter="lowscore" onclick="filterResult('lowscore')">⚠️ 원거리 배치</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 결과 테이블 -->
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span>📋 배치 결과 <span class="badge bg-secondary" id="resultCount">0명</span></span>
-                            <button class="btn btn-sm btn-success" onclick="downloadResult()">
-                                📥 엑셀 다운로드
-                            </button>
+                            <button class="btn btn-sm btn-success" onclick="downloadResult()">📥 엑셀 다운로드</button>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-hover result-table" id="resultTable">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>학번</th>
-                                            <th>이름</th>
-                                            <th>반</th>
-                                            <th>실습기간</th>
-                                            <th>주소</th>
-                                            <th>배정병원</th>
-                                            <th>실습부서</th>
-                                            <th>상태</th>
-                                        </tr>
-                                    </thead>
+                                    <thead class="table-light" id="resultTableHead"></thead>
                                     <tbody id="resultTableBody"></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 병원별 현황 -->
                     <div class="card mt-4">
                         <div class="card-header">🏥 병원별 배치 현황</div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-sm table-bordered" id="hospitalSummaryTable">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th rowspan="2" class="align-middle text-center">병원명</th>
-                                            <th colspan="2" class="text-center class-header-C">C반 (1-2주)</th>
-                                            <th colspan="2" class="text-center class-header-A">A반 (3-4주)</th>
-                                            <th colspan="2" class="text-center class-header-B">B반 (5-6주)</th>
-                                            <th colspan="2" class="text-center class-header-mixed">7-8주 (혼합)</th>
-                                            <th rowspan="2" class="align-middle text-center">총계</th>
-                                        </tr>
-                                        <tr>
-                                            <th class="text-center" style="font-size:0.7rem;">신생</th>
-                                            <th class="text-center" style="font-size:0.7rem;">소아</th>
-                                            <th class="text-center" style="font-size:0.7rem;">신생</th>
-                                            <th class="text-center" style="font-size:0.7rem;">소아</th>
-                                            <th class="text-center" style="font-size:0.7rem;">신생</th>
-                                            <th class="text-center" style="font-size:0.7rem;">소아</th>
-                                            <th class="text-center" style="font-size:0.7rem;">신생</th>
-                                            <th class="text-center" style="font-size:0.7rem;">소아</th>
-                                        </tr>
-                                    </thead>
+                                    <thead class="table-light" id="hospitalSummaryHead"></thead>
                                     <tbody id="hospitalSummaryBody"></tbody>
                                 </table>
                             </div>
@@ -660,7 +783,7 @@
                 </div>
 
                 <div id="noResultMessage" class="text-center py-5 text-muted">
-                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <circle cx="12" cy="12" r="10"></circle>
                         <path d="M12 6v6l4 2"></path>
                     </svg>
@@ -671,241 +794,573 @@
         </div>
     </div>
 
+    <!-- 도움말 버튼 -->
+    <button class="help-btn" onclick="showGuide()" title="사용법 보기">?</button>
+
+    <!-- 사용 가이드 모달 -->
+    <div class="modal fade" id="guideModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">📖 사용 가이드</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="guide-step">
+                        <div class="guide-step-number">1</div>
+                        <div class="guide-step-content">
+                            <h6>과목 설정</h6>
+                            <p class="mb-0">실습 과목명, 분반(A/B/C 등), 실습 병동(신생아실/소아과 등)을 설정합니다.<br>
+                            <strong>💡 팁:</strong> 프리셋을 선택하면 빠르게 설정할 수 있습니다.</p>
+                        </div>
+                    </div>
+                    <div class="guide-step">
+                        <div class="guide-step-number">2</div>
+                        <div class="guide-step-content">
+                            <h6>병원 티오 설정</h6>
+                            <p class="mb-0">실습 병원과 각 병원의 분반별/병동별 정원(티오)을 입력합니다.<br>
+                            병원 주소는 <strong>구/시 단위</strong>로 입력하세요 (예: 강남구, 성남시).</p>
+                        </div>
+                    </div>
+                    <div class="guide-step">
+                        <div class="guide-step-number">3</div>
+                        <div class="guide-step-content">
+                            <h6>학생 명단 업로드</h6>
+                            <p class="mb-2">엑셀 파일에 아래 컬럼이 포함되어야 합니다:</p>
+                            <ul class="mb-0">
+                                <li><strong>학번</strong> - 학생 학번</li>
+                                <li><strong>이름</strong> - 학생 이름</li>
+                                <li><strong>반</strong> - 설정한 분반명 (예: A, B, C 또는 1, 2, 3)</li>
+                                <li><strong>주소</strong> - 거주지 주소 (구/시 포함)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="guide-step">
+                        <div class="guide-step-number">4</div>
+                        <div class="guide-step-content">
+                            <h6>배치 결과 확인</h6>
+                            <p class="mb-0">학생 주소와 병원 위치가 <strong>가까운 곳 우선</strong>으로 자동 배치됩니다.<br>
+                            결과를 확인하고 엑셀로 다운로드할 수 있습니다.</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6>💾 설정 저장/불러오기</h6>
+                    <p class="small text-muted mb-0">
+                        상단의 "설정 내보내기"로 현재 설정을 JSON 파일로 저장할 수 있습니다.<br>
+                        다음 학기에 "설정 가져오기"로 불러와서 바로 사용하세요.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">확인</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // ====== 전역 변수 ======
+        let config = {
+            subjectName: '',
+            totalWeeks: 8,
+            weeksPerClass: 2,
+            classGroups: [],
+            departments: []
+        };
+
         let hospitals = [];
         let students = [];
         let placementResult = [];
 
-        // 반 목록 (학생 소속)
-        const STUDENT_CLASSES = ['C', 'A', 'B'];
-
-        // 반 순서 설정 (사용자 지정 가능)
-        let classOrder = ['C', 'A', 'B']; // 기본값: C → A → B → 혼합
-
-        // 반별 스타일
-        const CLASS_STYLES = {
-            'C': { bg: '#fef3c7', color: '#b45309', headerClass: 'class-header-C' },
-            'A': { bg: '#dbeafe', color: '#1d4ed8', headerClass: 'class-header-A' },
-            'B': { bg: '#d1fae5', color: '#059669', headerClass: 'class-header-B' }
-        };
-
-        // 동적으로 계산되는 값들
-        function getPlacementSlots() {
-            return [...classOrder, 'mixed'];
-        }
-
-        function getClassPeriods() {
-            const periods = {};
-            classOrder.forEach((cls, idx) => {
-                const weekStart = idx * 2 + 1;
-                const weekEnd = weekStart + 1;
-                periods[cls] = `${weekStart}-${weekEnd}주차`;
-            });
-            return periods;
-        }
+        const CLASS_COLORS = ['#fef3c7', '#dbeafe', '#d1fae5', '#fce7f3', '#e0e7ff', '#fed7aa', '#d9f99d', '#ccfbf1'];
+        const CLASS_TEXT_COLORS = ['#b45309', '#1d4ed8', '#059669', '#be185d', '#4338ca', '#c2410c', '#65a30d', '#0d9488'];
+        const DEPT_COLORS = ['#fee2e2', '#dbeafe', '#d1fae5', '#fef3c7', '#e0e7ff', '#fce7f3', '#ccfbf1', '#fed7aa'];
+        const DEPT_TEXT_COLORS = ['#dc2626', '#2563eb', '#059669', '#d97706', '#4f46e5', '#db2777', '#0d9488', '#ea580c'];
 
         // ====== 초기화 ======
         document.addEventListener('DOMContentLoaded', function() {
-            loadClassOrder();
+            loadConfig();
             loadHospitals();
             initDragDrop();
-            updateScheduleDisplay();
+            updateUI();
         });
 
-        // ====== 반 순서 관리 ======
-        function loadClassOrder() {
-            const saved = localStorage.getItem('classOrder');
+        // ====== 프리셋 ======
+        function applyPreset(type) {
+            const presets = {
+                'pediatric': {
+                    subjectName: '아동간호학실습',
+                    totalWeeks: 8,
+                    weeksPerClass: 2,
+                    classes: ['A반', 'B반', 'C반'],
+                    departments: ['신생아실', '소아과']
+                },
+                'adult': {
+                    subjectName: '성인간호학실습',
+                    totalWeeks: 8,
+                    weeksPerClass: 2,
+                    classes: ['A반', 'B반', 'C반'],
+                    departments: ['내과병동', '외과병동']
+                },
+                'psychiatric': {
+                    subjectName: '정신간호학실습',
+                    totalWeeks: 6,
+                    weeksPerClass: 3,
+                    classes: ['A반', 'B반'],
+                    departments: ['폐쇄병동', '개방병동']
+                },
+                'maternity': {
+                    subjectName: '모성간호학실습',
+                    totalWeeks: 8,
+                    weeksPerClass: 2,
+                    classes: ['A반', 'B반', 'C반'],
+                    departments: ['분만실', '산후조리실']
+                },
+                'community': {
+                    subjectName: '지역사회간호학실습',
+                    totalWeeks: 4,
+                    weeksPerClass: 2,
+                    classes: ['A반', 'B반'],
+                    departments: ['보건소', '방문간호']
+                },
+                'custom': {
+                    subjectName: '',
+                    totalWeeks: 8,
+                    weeksPerClass: 2,
+                    classes: [],
+                    departments: []
+                }
+            };
+
+            const preset = presets[type];
+            if (!preset) return;
+
+            config.subjectName = preset.subjectName;
+            config.totalWeeks = preset.totalWeeks;
+            config.weeksPerClass = preset.weeksPerClass;
+
+            document.getElementById('subjectName').value = preset.subjectName;
+            document.getElementById('totalWeeks').value = preset.totalWeeks;
+            document.getElementById('weeksPerClass').value = preset.weeksPerClass;
+
+            // 분반 설정
+            config.classGroups = preset.classes.map((name, i) => ({
+                id: 'class_' + Date.now() + i,
+                name: name,
+                color: CLASS_COLORS[i % CLASS_COLORS.length],
+                textColor: CLASS_TEXT_COLORS[i % CLASS_TEXT_COLORS.length]
+            }));
+
+            // 병동 설정
+            config.departments = preset.departments.map((name, i) => ({
+                id: 'dept_' + Date.now() + i,
+                name: name,
+                color: DEPT_COLORS[i % DEPT_COLORS.length],
+                textColor: DEPT_TEXT_COLORS[i % DEPT_TEXT_COLORS.length]
+            }));
+
+            saveConfig();
+            renderClassGroups();
+            renderDepartments();
+            updateScheduleDisplay();
+            updateSummary();
+        }
+
+        // ====== 설정 관리 ======
+        function loadConfig() {
+            const saved = localStorage.getItem('placement_config_v2');
             if (saved) {
-                classOrder = JSON.parse(saved);
-                // 드롭다운 값 설정
-                document.getElementById('order1').value = classOrder[0];
-                document.getElementById('order2').value = classOrder[1];
-                document.getElementById('order3').value = classOrder[2];
+                config = JSON.parse(saved);
+                document.getElementById('subjectName').value = config.subjectName || '';
+                document.getElementById('totalWeeks').value = config.totalWeeks || 8;
+                document.getElementById('weeksPerClass').value = config.weeksPerClass || 2;
+            }
+            renderClassGroups();
+            renderDepartments();
+            updateSummary();
+        }
+
+        function saveConfig() {
+            config.subjectName = document.getElementById('subjectName').value;
+            config.totalWeeks = parseInt(document.getElementById('totalWeeks').value) || 8;
+            config.weeksPerClass = parseInt(document.getElementById('weeksPerClass').value) || 2;
+            localStorage.setItem('placement_config_v2', JSON.stringify(config));
+        }
+
+        function saveAndNext() {
+            if (config.classGroups.length === 0) {
+                alert('최소 1개의 분반을 추가해주세요.');
+                return;
+            }
+            if (config.departments.length === 0) {
+                alert('최소 1개의 병동/부서를 추가해주세요.');
+                return;
+            }
+            saveConfig();
+            renderHospitalTable();
+            updateCapacitySummary();
+            updateSummary();
+            document.getElementById('hospital-tab').click();
+        }
+
+        function resetSettings() {
+            if (confirm('모든 설정을 초기화하시겠습니까?')) {
+                config = { subjectName: '', totalWeeks: 8, weeksPerClass: 2, classGroups: [], departments: [] };
+                document.getElementById('subjectName').value = '';
+                document.getElementById('totalWeeks').value = 8;
+                document.getElementById('weeksPerClass').value = 2;
+                localStorage.removeItem('placement_config_v2');
+                renderClassGroups();
+                renderDepartments();
+                updateScheduleDisplay();
+                updateSummary();
             }
         }
 
-        function updateClassOrder() {
-            const order1 = document.getElementById('order1').value;
-            const order2 = document.getElementById('order2').value;
-            const order3 = document.getElementById('order3').value;
+        function updateSummary() {
+            const subject = config.subjectName || document.getElementById('subjectName').value || '설정 필요';
+            const classes = config.classGroups.map(g => g.name).join(', ') || '-';
+            const depts = config.departments.map(d => d.name).join(', ') || '-';
 
-            // 중복 체크
-            const orders = [order1, order2, order3];
-            const unique = new Set(orders);
+            document.getElementById('summarySubject').textContent = subject;
+            document.getElementById('summaryClasses').textContent = '분반: ' + classes;
+            document.getElementById('summaryDepts').textContent = '병동: ' + depts;
+            document.getElementById('summaryHospitals').textContent = '병원: ' + hospitals.length + '개';
 
-            if (unique.size !== 3) {
-                // 중복이 있으면 경고 표시
-                showOrderWarning('각 주차에 서로 다른 반을 선택해주세요.');
+            // 학생 업로드 탭의 유효 분반명 표시
+            const validNames = config.classGroups.map(g => g.name.replace(/[반분반]/g, '')).join('/');
+            document.getElementById('validClassNames').textContent = validNames || '-';
+        }
+
+        // ====== 설정 내보내기/가져오기 ======
+        function exportAllSettings() {
+            saveConfig();
+            const exportData = {
+                version: 2,
+                exportDate: new Date().toISOString(),
+                config: config,
+                hospitals: hospitals
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `실습배치설정_${config.subjectName || '미설정'}_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importSettings(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.config) {
+                        config = data.config;
+                        document.getElementById('subjectName').value = config.subjectName || '';
+                        document.getElementById('totalWeeks').value = config.totalWeeks || 8;
+                        document.getElementById('weeksPerClass').value = config.weeksPerClass || 2;
+                        saveConfig();
+                        renderClassGroups();
+                        renderDepartments();
+                        updateScheduleDisplay();
+                    }
+                    if (data.hospitals) {
+                        hospitals = data.hospitals;
+                        localStorage.setItem('placement_hospitals_v2', JSON.stringify(hospitals));
+                        renderHospitalTable();
+                        updateCapacitySummary();
+                    }
+                    updateSummary();
+                    alert('설정을 성공적으로 불러왔습니다!');
+                } catch (error) {
+                    alert('설정 파일을 읽는 중 오류가 발생했습니다: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // ====== 분반 관리 ======
+        function addClassGroup(name = '') {
+            const idx = config.classGroups.length;
+            const defaultName = name || String.fromCharCode(65 + idx) + '반';
+
+            config.classGroups.push({
+                id: 'class_' + Date.now(),
+                name: defaultName,
+                color: CLASS_COLORS[idx % CLASS_COLORS.length],
+                textColor: CLASS_TEXT_COLORS[idx % CLASS_TEXT_COLORS.length]
+            });
+
+            saveConfig();
+            renderClassGroups();
+            updateScheduleDisplay();
+            updateSummary();
+        }
+
+        function removeClassGroup(id) {
+            config.classGroups = config.classGroups.filter(c => c.id !== id);
+            saveConfig();
+            renderClassGroups();
+            updateScheduleDisplay();
+            updateSummary();
+        }
+
+        function updateClassGroupName(id, name) {
+            const group = config.classGroups.find(c => c.id === id);
+            if (group) {
+                group.name = name;
+                saveConfig();
+                updateScheduleDisplay();
+                updateSummary();
+            }
+        }
+
+        function renderClassGroups() {
+            const container = document.getElementById('classGroupList');
+            if (config.classGroups.length === 0) {
+                container.innerHTML = '<p class="text-muted small mb-2">분반을 추가해주세요.</p>';
                 return;
             }
 
-            hideOrderWarning();
-            classOrder = orders;
-            localStorage.setItem('classOrder', JSON.stringify(classOrder));
+            container.innerHTML = config.classGroups.map((g, idx) => `
+                <div class="class-group-item" style="background: ${g.color};">
+                    <span class="badge me-2" style="background: ${g.textColor};">${idx + 1}</span>
+                    <input type="text" class="form-control form-control-sm me-2" style="max-width: 100px; background: transparent; border: 1px solid ${g.textColor}40;"
+                           value="${g.name}" onchange="updateClassGroupName('${g.id}', this.value)">
+                    <small class="text-muted me-auto">${getWeekRangeForClass(idx)}</small>
+                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="removeClassGroup('${g.id}')">×</button>
+                </div>
+            `).join('');
+        }
 
-            // UI 업데이트
+        function addPresetClasses(type) {
+            config.classGroups = [];
+            let names = [];
+            if (type === 'ABC') names = ['A반', 'B반', 'C반'];
+            else if (type === 'ABCD') names = ['A반', 'B반', 'C반', 'D반'];
+            else if (type === '12') names = ['1분반', '2분반'];
+
+            names.forEach((name, i) => {
+                config.classGroups.push({
+                    id: 'class_' + Date.now() + i,
+                    name: name,
+                    color: CLASS_COLORS[i],
+                    textColor: CLASS_TEXT_COLORS[i]
+                });
+            });
+
+            saveConfig();
+            renderClassGroups();
             updateScheduleDisplay();
-            renderHospitalTable();
-            updateCapacitySummary();
+            updateSummary();
         }
 
-        function showOrderWarning(msg) {
-            let warning = document.getElementById('orderWarning');
-            if (!warning) {
-                warning = document.createElement('div');
-                warning.id = 'orderWarning';
-                warning.className = 'order-warning text-center';
-                document.getElementById('scheduleDisplay').after(warning);
+        function getWeekRangeForClass(idx) {
+            const weeksPerClass = config.weeksPerClass || 2;
+            const start = idx * weeksPerClass + 1;
+            const end = start + weeksPerClass - 1;
+            return `${start}-${end}주`;
+        }
+
+        // ====== 병동/부서 관리 ======
+        function addDepartment(name = '') {
+            const idx = config.departments.length;
+            config.departments.push({
+                id: 'dept_' + Date.now(),
+                name: name || '병동' + (idx + 1),
+                color: DEPT_COLORS[idx % DEPT_COLORS.length],
+                textColor: DEPT_TEXT_COLORS[idx % DEPT_TEXT_COLORS.length]
+            });
+            saveConfig();
+            renderDepartments();
+            updateSummary();
+        }
+
+        function removeDepartment(id) {
+            config.departments = config.departments.filter(d => d.id !== id);
+            saveConfig();
+            renderDepartments();
+            updateSummary();
+        }
+
+        function updateDepartmentName(id, name) {
+            const dept = config.departments.find(d => d.id === id);
+            if (dept) {
+                dept.name = name;
+                saveConfig();
+                updateSummary();
             }
-            warning.textContent = '⚠️ ' + msg;
-            warning.style.display = 'block';
         }
 
-        function hideOrderWarning() {
-            const warning = document.getElementById('orderWarning');
-            if (warning) warning.style.display = 'none';
+        function renderDepartments() {
+            const container = document.getElementById('departmentList');
+            if (config.departments.length === 0) {
+                container.innerHTML = '<p class="text-muted small mb-2">병동/부서를 추가해주세요.</p>';
+                return;
+            }
+
+            container.innerHTML = config.departments.map(d => `
+                <span class="dept-tag" style="background: ${d.color}; color: ${d.textColor};">
+                    <input type="text" value="${d.name}" style="border: none; background: transparent; color: inherit; width: 70px; font-size: inherit;"
+                           onchange="updateDepartmentName('${d.id}', this.value)">
+                    <button onclick="removeDepartment('${d.id}')">×</button>
+                </span>
+            `).join('');
         }
 
+        function addPresetDepts(type) {
+            config.departments = [];
+            let depts = type === 'peds' ? ['신생아실', '소아과'] : ['내과병동', '외과병동'];
+            depts.forEach((name, i) => {
+                config.departments.push({
+                    id: 'dept_' + Date.now() + i,
+                    name: name,
+                    color: DEPT_COLORS[i],
+                    textColor: DEPT_TEXT_COLORS[i]
+                });
+            });
+            saveConfig();
+            renderDepartments();
+            updateSummary();
+        }
+
+        // ====== 스케줄 표시 ======
         function updateScheduleDisplay() {
             const container = document.getElementById('scheduleDisplay');
-            const periods = getClassPeriods();
+            if (config.classGroups.length === 0) {
+                container.innerHTML = '<p class="text-muted mb-0 small">분반을 추가하면 스케줄이 표시됩니다.</p>';
+                return;
+            }
 
             let html = '';
-            classOrder.forEach((cls, idx) => {
-                const style = CLASS_STYLES[cls];
-                const weekStart = idx * 2 + 1;
-                const weekEnd = weekStart + 1;
-
+            config.classGroups.forEach((g, idx) => {
                 if (idx > 0) html += '<span class="mx-1">→</span>';
-                html += `<span class="schedule-item" style="background: ${style.bg}; color: ${style.color};">
-                    ${weekStart}-${weekEnd}주: ${cls}반
+                html += `<span class="schedule-item" style="background: ${g.color}; color: ${g.textColor};">
+                    ${getWeekRangeForClass(idx)}: ${g.name}
                 </span>`;
             });
 
-            html += '<span class="mx-1">→</span>';
-            html += `<span class="schedule-item" style="background: #ede9fe; color: #7c3aed;">
-                7-8주: 미배치 학생
-            </span>`;
+            const regularWeeks = config.classGroups.length * (config.weeksPerClass || 2);
+            const totalWeeks = parseInt(document.getElementById('totalWeeks').value) || 8;
+            if (regularWeeks < totalWeeks) {
+                html += '<span class="mx-1">→</span>';
+                html += `<span class="schedule-item" style="background: #ede9fe; color: #7c3aed;">
+                    ${regularWeeks + 1}-${totalWeeks}주: 추가배치
+                </span>`;
+            }
 
             container.innerHTML = html;
         }
 
-        // ====== 병원 관리 ======
-        const defaultHospitals = [
-            {
-                name: '서울대병원',
-                address: '종로구',
-                C_nicu: 2, C_peds: 2,
-                A_nicu: 2, A_peds: 2,
-                B_nicu: 2, B_peds: 2,
-                mixed_nicu: 1, mixed_peds: 1
-            },
-            {
-                name: '세브란스병원',
-                address: '서대문구',
-                C_nicu: 2, C_peds: 2,
-                A_nicu: 2, A_peds: 2,
-                B_nicu: 2, B_peds: 2,
-                mixed_nicu: 1, mixed_peds: 1
-            },
-            {
-                name: '삼성서울병원',
-                address: '강남구',
-                C_nicu: 2, C_peds: 2,
-                A_nicu: 2, A_peds: 2,
-                B_nicu: 2, B_peds: 2,
-                mixed_nicu: 1, mixed_peds: 1
-            },
-            {
-                name: '서울아산병원',
-                address: '송파구',
-                C_nicu: 2, C_peds: 2,
-                A_nicu: 2, A_peds: 2,
-                B_nicu: 2, B_peds: 2,
-                mixed_nicu: 1, mixed_peds: 1
-            },
-            {
-                name: '고려대안암병원',
-                address: '성북구',
-                C_nicu: 1, C_peds: 1,
-                A_nicu: 2, A_peds: 2,
-                B_nicu: 0, B_peds: 2,
-                mixed_nicu: 1, mixed_peds: 1
-            }
-        ];
+        function updateUI() {
+            updateScheduleDisplay();
+            updateSummary();
+        }
 
+        // ====== 병원 관리 ======
         function loadHospitals() {
-            const saved = localStorage.getItem('hospitals_v4');
-            hospitals = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(defaultHospitals));
+            const saved = localStorage.getItem('placement_hospitals_v2');
+            hospitals = saved ? JSON.parse(saved) : [];
             renderHospitalTable();
             updateCapacitySummary();
         }
 
-        function renderHospitalTable() {
-            // 테이블 헤더도 동적으로 업데이트
-            updateTableHeaders();
+        function getPlacementSlots() {
+            const slots = config.classGroups.map((g, idx) => ({
+                id: g.id,
+                classId: g.id,
+                label: `${g.name} (${getWeekRangeForClass(idx)})`,
+                isMixed: false
+            }));
 
-            const tbody = document.getElementById('hospitalTableBody');
-            const slots = getPlacementSlots();
-
-            tbody.innerHTML = hospitals.map((h, idx) => {
-                let cellsHtml = `
-                    <td class="hospital-name-cell">
-                        <input type="text" value="${h.name}" onchange="updateHospital(${idx}, 'name', this.value)" placeholder="병원명">
-                    </td>
-                    <td class="hospital-addr-cell">
-                        <input type="text" value="${h.address}" onchange="updateHospital(${idx}, 'address', this.value)" placeholder="구">
-                    </td>
-                `;
-
-                // 순서에 따라 셀 생성
-                slots.forEach(slot => {
-                    cellsHtml += `
-                        <td class="to-cell nicu-col"><input type="number" min="0" value="${h[`${slot}_nicu`] || 0}" onchange="updateHospital(${idx}, '${slot}_nicu', this.value)"></td>
-                        <td class="to-cell peds-col"><input type="number" min="0" value="${h[`${slot}_peds`] || 0}" onchange="updateHospital(${idx}, '${slot}_peds', this.value)"></td>
-                    `;
+            const regularWeeks = config.classGroups.length * config.weeksPerClass;
+            if (regularWeeks < config.totalWeeks) {
+                slots.push({
+                    id: 'mixed',
+                    classId: null,
+                    label: `추가배치 (${regularWeeks + 1}-${config.totalWeeks}주)`,
+                    isMixed: true
                 });
+            }
 
-                cellsHtml += `<td><button class="btn btn-sm btn-outline-danger" onclick="removeHospital(${idx})">✕</button></td>`;
-
-                return `<tr>${cellsHtml}</tr>`;
-            }).join('');
+            return slots;
         }
 
-        function updateTableHeaders() {
-            const thead = document.querySelector('#hospitalTable thead');
-            const slots = getPlacementSlots();
+        function renderHospitalTable() {
+            if (config.classGroups.length === 0 || config.departments.length === 0) {
+                document.getElementById('hospitalTableHead').innerHTML = '';
+                document.getElementById('hospitalTableBody').innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">먼저 과목/분반 설정을 완료해주세요.</td></tr>';
+                return;
+            }
 
-            // 첫 번째 행 (반 헤더)
+            const slots = getPlacementSlots();
+            const thead = document.getElementById('hospitalTableHead');
+            const tbody = document.getElementById('hospitalTableBody');
+
             let headerRow1 = `
-                <th rowspan="2" class="align-middle text-center" style="min-width:120px;">병원명</th>
-                <th rowspan="2" class="align-middle text-center" style="min-width:100px;">주소(구)</th>
+                <th rowspan="2" class="align-middle text-center" style="min-width:100px;">병원명</th>
+                <th rowspan="2" class="align-middle text-center" style="min-width:80px;">주소(구/시)</th>
             `;
 
-            slots.forEach((slot, idx) => {
-                if (slot === 'mixed') {
-                    headerRow1 += `<th colspan="2" class="class-header class-header-mixed">7-8주 (혼합)</th>`;
-                } else {
-                    const weekStart = idx * 2 + 1;
-                    const weekEnd = weekStart + 1;
-                    headerRow1 += `<th colspan="2" class="class-header class-header-${slot}">${slot}반 (${weekStart}-${weekEnd}주)</th>`;
-                }
+            slots.forEach(slot => {
+                const group = config.classGroups.find(g => g.id === slot.classId);
+                const style = group ? `background: ${group.color}; color: ${group.textColor};` : 'background: #ede9fe; color: #7c3aed;';
+                headerRow1 += `<th colspan="${config.departments.length}" class="text-center" style="${style}; font-size: 0.75rem;">${slot.label}</th>`;
             });
-
             headerRow1 += `<th rowspan="2" class="align-middle text-center" style="width:40px;"></th>`;
 
-            // 두 번째 행 (신생/소아)
             let headerRow2 = '';
             slots.forEach(() => {
-                headerRow2 += `
-                    <th class="dept-sub-header nicu-col">신생</th>
-                    <th class="dept-sub-header peds-col">소아</th>
-                `;
+                config.departments.forEach(dept => {
+                    headerRow2 += `<th class="text-center" style="font-size:0.65rem; background: ${dept.color}; padding: 0.25rem;">${dept.name.substring(0, 3)}</th>`;
+                });
             });
 
             thead.innerHTML = `<tr>${headerRow1}</tr><tr>${headerRow2}</tr>`;
+
+            tbody.innerHTML = hospitals.map((h, idx) => {
+                let cellsHtml = `
+                    <td><input type="text" value="${h.name || ''}" onchange="updateHospital(${idx}, 'name', this.value)" placeholder="병원명"></td>
+                    <td><input type="text" value="${h.address || ''}" onchange="updateHospital(${idx}, 'address', this.value)" placeholder="구/시"></td>
+                `;
+
+                slots.forEach(slot => {
+                    config.departments.forEach(dept => {
+                        const key = `${slot.id}_${dept.id}`;
+                        cellsHtml += `<td class="text-center" style="background: ${dept.color}20; padding: 0.25rem;">
+                            <input type="number" min="0" value="${h[key] || 0}" onchange="updateHospital(${idx}, '${key}', this.value)">
+                        </td>`;
+                    });
+                });
+
+                cellsHtml += `<td><button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="removeHospital(${idx})">×</button></td>`;
+                return `<tr>${cellsHtml}</tr>`;
+            }).join('');
+
+            if (hospitals.length === 0) {
+                const colSpan = 3 + slots.length * config.departments.length;
+                tbody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center text-muted py-4">병원을 추가해주세요.</td></tr>`;
+            }
+        }
+
+        function addHospitalRow() {
+            const newHospital = { name: '', address: '' };
+            const slots = getPlacementSlots();
+            slots.forEach(slot => {
+                config.departments.forEach(dept => {
+                    newHospital[`${slot.id}_${dept.id}`] = 0;
+                });
+            });
+            hospitals.push(newHospital);
+            renderHospitalTable();
+            updateCapacitySummary();
+            updateSummary();
         }
 
         function updateHospital(idx, field, value) {
@@ -917,103 +1372,124 @@
             updateCapacitySummary();
         }
 
+        function removeHospital(idx) {
+            hospitals.splice(idx, 1);
+            renderHospitalTable();
+            updateCapacitySummary();
+            updateSummary();
+        }
+
         function updateCapacitySummary() {
+            const container = document.getElementById('capacitySummary');
+            if (config.classGroups.length === 0 || config.departments.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
             const slots = getPlacementSlots();
             const summary = {};
             slots.forEach(slot => {
-                summary[slot] = { nicu: 0, peds: 0, total: 0 };
+                summary[slot.id] = { total: 0, byDept: {} };
+                config.departments.forEach(dept => summary[slot.id].byDept[dept.id] = 0);
             });
 
             hospitals.forEach(h => {
                 slots.forEach(slot => {
-                    const nicu = h[`${slot}_nicu`] || 0;
-                    const peds = h[`${slot}_peds`] || 0;
-                    summary[slot].nicu += nicu;
-                    summary[slot].peds += peds;
-                    summary[slot].total += nicu + peds;
+                    config.departments.forEach(dept => {
+                        const key = `${slot.id}_${dept.id}`;
+                        const val = h[key] || 0;
+                        summary[slot.id].byDept[dept.id] += val;
+                        summary[slot.id].total += val;
+                    });
                 });
             });
 
-            // 동적 라벨 생성
-            const slotLabels = {};
-            classOrder.forEach((cls, idx) => {
-                const weekStart = idx * 2 + 1;
-                const weekEnd = weekStart + 1;
-                slotLabels[cls] = `${cls}반 (${weekStart}-${weekEnd}주)`;
-            });
-            slotLabels['mixed'] = '7-8주 (혼합)';
-
-            const container = document.getElementById('capacitySummary');
             container.innerHTML = slots.map(slot => {
+                const group = config.classGroups.find(g => g.id === slot.classId);
+                const borderColor = group ? group.textColor : '#7c3aed';
+                const deptDetails = config.departments.map(dept =>
+                    `${dept.name.substring(0, 2)} ${summary[slot.id].byDept[dept.id]}`
+                ).join(' / ');
+
                 return `
-                    <div class="capacity-box class-${slot}">
-                        <div class="class-name">${slotLabels[slot]}</div>
-                        <div class="capacity-total">${summary[slot].total}명</div>
-                        <div class="capacity-detail">
-                            신생아실 ${summary[slot].nicu} / 소아과 ${summary[slot].peds}
-                        </div>
+                    <div class="capacity-box" style="border-left: 4px solid ${borderColor};">
+                        <div class="class-name" style="font-size: 0.75rem;">${slot.label}</div>
+                        <div class="capacity-total">${summary[slot.id].total}명</div>
+                        <div class="capacity-detail">${deptDetails}</div>
                     </div>
                 `;
             }).join('');
         }
 
-        function addHospitalRow() {
-            hospitals.push({
-                name: '',
-                address: '',
-                C_nicu: 0, C_peds: 0,
-                A_nicu: 0, A_peds: 0,
-                B_nicu: 0, B_peds: 0,
-                mixed_nicu: 0, mixed_peds: 0
-            });
-            renderHospitalTable();
-            updateCapacitySummary();
-        }
-
-        function removeHospital(idx) {
-            hospitals.splice(idx, 1);
-            renderHospitalTable();
-            updateCapacitySummary();
-        }
-
         function saveHospitals() {
-            localStorage.setItem('hospitals_v4', JSON.stringify(hospitals));
+            localStorage.setItem('placement_hospitals_v2', JSON.stringify(hospitals));
+            updateSummary();
             alert('병원 설정이 저장되었습니다!');
+        }
+
+        function saveHospitalsAndNext() {
+            if (hospitals.length === 0) {
+                alert('최소 1개의 병원을 추가해주세요.');
+                return;
+            }
+            localStorage.setItem('placement_hospitals_v2', JSON.stringify(hospitals));
+            updateSummary();
+            document.getElementById('upload-tab').click();
         }
 
         function resetHospitals() {
             if (confirm('병원 설정을 초기화하시겠습니까?')) {
-                hospitals = JSON.parse(JSON.stringify(defaultHospitals));
+                hospitals = [];
+                localStorage.removeItem('placement_hospitals_v2');
                 renderHospitalTable();
                 updateCapacitySummary();
-                localStorage.removeItem('hospitals_v4');
+                updateSummary();
             }
+        }
+
+        // ====== 템플릿 다운로드 ======
+        function downloadHospitalTemplate() {
+            const slots = getPlacementSlots();
+            const headers = ['병원명', '주소(구/시)'];
+            slots.forEach(slot => {
+                config.departments.forEach(dept => {
+                    headers.push(`${slot.label}_${dept.name}`);
+                });
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet([headers, ['서울대병원', '종로구', ...Array(slots.length * config.departments.length).fill(2)]]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '병원티오');
+            XLSX.writeFile(wb, '병원티오_템플릿.xlsx');
+        }
+
+        function downloadStudentTemplate() {
+            const validClasses = config.classGroups.map(g => g.name.replace(/[반분반]/g, '')).join(', ');
+            const ws = XLSX.utils.aoa_to_sheet([
+                ['학번', '이름', '반', '주소'],
+                ['2024001', '홍길동', config.classGroups[0]?.name.replace(/[반분반]/g, '') || 'A', '서울시 강남구 역삼동'],
+                ['2024002', '김철수', config.classGroups[0]?.name.replace(/[반분반]/g, '') || 'A', '경기도 성남시 분당구'],
+                ['', '', `※ 반 컬럼에는 ${validClasses} 중 하나를 입력하세요`, '']
+            ]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '학생명단');
+            XLSX.writeFile(wb, '학생명단_템플릿.xlsx');
         }
 
         // ====== 파일 업로드 ======
         function initDragDrop() {
             const zone = document.getElementById('uploadZone');
-
-            zone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                zone.classList.add('dragover');
-            });
-
-            zone.addEventListener('dragleave', () => {
-                zone.classList.remove('dragover');
-            });
-
+            zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
             zone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 zone.classList.remove('dragover');
-                const file = e.dataTransfer.files[0];
-                if (file) processFile(file);
+                if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
             });
         }
 
         function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (file) processFile(file);
+            if (event.target.files[0]) processFile(event.target.files[0]);
         }
 
         function processFile(file) {
@@ -1025,27 +1501,35 @@
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const json = XLSX.utils.sheet_to_json(sheet);
 
-                    // 컬럼명 정규화
+                    const validClassNames = config.classGroups.map(g => ({
+                        id: g.id,
+                        name: g.name,
+                        normalized: g.name.replace(/[반분반]/g, '').trim().toUpperCase()
+                    }));
+
                     students = json.map(row => {
                         const normalized = {};
                         for (let key in row) {
                             const lowerKey = key.toLowerCase().trim();
-                            if (lowerKey.includes('학번') || lowerKey === 'id' || lowerKey === 'studentid' || lowerKey === 'student_id') {
+                            if (lowerKey.includes('학번') || lowerKey === 'id' || lowerKey === 'studentid') {
                                 normalized.studentId = String(row[key]).trim();
                             } else if (lowerKey.includes('이름') || lowerKey === 'name') {
                                 normalized.name = String(row[key]).trim();
                             } else if (lowerKey.includes('반') || lowerKey === 'class') {
-                                let classVal = String(row[key]).toUpperCase().replace('반', '').trim();
-                                normalized.class = classVal;
+                                let classVal = String(row[key]).replace(/[반분반]/g, '').trim().toUpperCase();
+                                const found = validClassNames.find(v => v.normalized === classVal || v.name === row[key]);
+                                normalized.classId = found ? found.id : null;
+                                normalized.className = found ? found.name : row[key];
                             } else if (lowerKey.includes('주소') || lowerKey === 'address') {
                                 normalized.address = String(row[key]).trim();
                             }
                         }
                         return normalized;
-                    }).filter(s => s.studentId && s.name && s.class && s.address && STUDENT_CLASSES.includes(s.class));
+                    }).filter(s => s.studentId && s.name && s.classId && s.address);
 
                     if (students.length === 0) {
-                        alert('올바른 형식의 데이터를 찾을 수 없습니다.\n필수 컬럼: 학번, 이름, 반(A/B/C), 주소');
+                        const validNames = config.classGroups.map(g => g.name).join(', ');
+                        alert(`올바른 형식의 데이터를 찾을 수 없습니다.\n\n필수 컬럼: 학번, 이름, 반, 주소\n유효한 분반명: ${validNames}`);
                         return;
                     }
 
@@ -1061,57 +1545,32 @@
             const preview = document.getElementById('uploadPreview');
             const table = document.getElementById('previewTable');
 
-            // 반별 학생 수 계산
-            const classCounts = { C: 0, A: 0, B: 0 };
-            students.forEach(s => {
-                if (classCounts[s.class] !== undefined) {
-                    classCounts[s.class]++;
-                }
-            });
+            const classCounts = {};
+            config.classGroups.forEach(g => classCounts[g.id] = 0);
+            students.forEach(s => { if (classCounts[s.classId] !== undefined) classCounts[s.classId]++; });
 
-            // 반별 요약 표시
-            document.getElementById('classSummary').innerHTML = `
-                <div class="col-4">
-                    <div class="stat-card py-2">
-                        <div class="number fs-5" style="color: #b45309;">${classCounts.C}</div>
-                        <small class="text-muted">C반 (1-2주)</small>
+            const colSize = Math.max(Math.floor(12 / config.classGroups.length), 3);
+            document.getElementById('classSummary').innerHTML = config.classGroups.map((g, idx) => `
+                <div class="col-${colSize}">
+                    <div class="stat-card py-2" style="border-left: 3px solid ${g.textColor};">
+                        <div class="number fs-5" style="color: ${g.textColor};">${classCounts[g.id]}</div>
+                        <small class="text-muted">${g.name}</small>
                     </div>
                 </div>
-                <div class="col-4">
-                    <div class="stat-card py-2">
-                        <div class="number fs-5" style="color: #1d4ed8;">${classCounts.A}</div>
-                        <small class="text-muted">A반 (3-4주)</small>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="stat-card py-2">
-                        <div class="number fs-5" style="color: #059669;">${classCounts.B}</div>
-                        <small class="text-muted">B반 (5-6주)</small>
-                    </div>
-                </div>
-            `;
-
-            // 데이터
-            table.querySelector('tbody').innerHTML = students.map((s, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${s.studentId}</td>
-                    <td>${s.name}</td>
-                    <td><span class="badge badge-class-${s.class}">${s.class}반</span></td>
-                    <td>${s.address}</td>
-                </tr>
             `).join('');
+
+            table.querySelector('tbody').innerHTML = students.map((s, i) => {
+                const group = config.classGroups.find(g => g.id === s.classId);
+                const style = group ? `background: ${group.color}; color: ${group.textColor};` : '';
+                return `<tr><td>${i + 1}</td><td>${s.studentId}</td><td>${s.name}</td><td><span class="badge" style="${style}">${s.className}</span></td><td>${s.address}</td></tr>`;
+            }).join('');
 
             preview.style.display = 'block';
         }
 
         // ====== 배치 알고리즘 ======
         function runPlacement() {
-            if (hospitals.length === 0) {
-                alert('먼저 병원 설정을 완료해주세요.');
-                return;
-            }
-
+            if (hospitals.length === 0) { alert('먼저 병원 설정을 완료해주세요.'); return; }
             document.getElementById('loadingOverlay').classList.add('show');
 
             setTimeout(() => {
@@ -1124,83 +1583,63 @@
                 } finally {
                     document.getElementById('loadingOverlay').classList.remove('show');
                 }
-            }, 500);
+            }, 300);
         }
 
         function performPlacement() {
             const results = [];
             const unplacedStudents = [];
             const slots = getPlacementSlots();
-            const CLASS_PERIODS = getClassPeriods();
 
-            // 병원별 잔여 정원 복사
-            const remaining = hospitals.map(h => {
-                const r = { name: h.name, address: h.address, originalIdx: hospitals.indexOf(h) };
+            const remaining = hospitals.map((h, idx) => {
+                const r = { name: h.name, address: h.address, originalIdx: idx };
                 slots.forEach(slot => {
-                    r[`${slot}_nicu`] = h[`${slot}_nicu`] || 0;
-                    r[`${slot}_peds`] = h[`${slot}_peds`] || 0;
+                    config.departments.forEach(dept => {
+                        r[`${slot.id}_${dept.id}`] = h[`${slot.id}_${dept.id}`] || 0;
+                    });
                 });
                 return r;
             });
 
-            // 반별로 학생 그룹화
             const studentsByClass = {};
-            STUDENT_CLASSES.forEach(c => studentsByClass[c] = []);
-            students.forEach(s => {
-                if (studentsByClass[s.class]) {
-                    studentsByClass[s.class].push({ ...s });
-                }
-            });
+            config.classGroups.forEach(g => studentsByClass[g.id] = []);
+            students.forEach(s => { if (studentsByClass[s.classId]) studentsByClass[s.classId].push({ ...s }); });
 
-            // 1단계: 정규 기간 배치 (설정된 순서대로 - classOrder 사용)
-            for (const classId of classOrder) {
-                const classStudents = studentsByClass[classId];
+            for (const group of config.classGroups) {
+                const classStudents = studentsByClass[group.id];
                 if (classStudents.length === 0) continue;
 
-                // 모든 학생의 병원별 점수 계산
+                const slotId = group.id;
+                const groupIdx = config.classGroups.findIndex(g => g.id === group.id);
+
                 classStudents.forEach(student => {
                     student.hospitalScores = remaining.map((h, idx) => ({
-                        idx,
-                        hospital: h,
-                        score: calculateAddressScore(student.address, h.address)
+                        idx, hospital: h, score: calculateAddressScore(student.address, h.address)
                     })).sort((a, b) => b.score - a.score);
-
-                    // 최고 점수 저장 (제약 조건 계산용)
                     student.bestScore = student.hospitalScores[0]?.score || 0;
                 });
 
-                // ★ 최적화 1: 제약이 많은 학생 우선 배치
-                // (좋은 병원 옵션이 적은 학생부터 배치하여 공정성 확보)
                 classStudents.sort((a, b) => a.bestScore - b.bestScore);
 
-                // 초기 배치
+                const deptCounts = {};
+                config.departments.forEach(d => deptCounts[d.id] = 0);
                 const classResults = [];
-                let nicuCount = 0, pedsCount = 0;
 
                 for (const student of classStudents) {
                     let placed = false;
-                    // 부서 균형 맞추기
-                    const deptOrder = nicuCount <= pedsCount ? ['nicu', 'peds'] : ['peds', 'nicu'];
+                    const deptOrder = [...config.departments].sort((a, b) => deptCounts[a.id] - deptCounts[b.id]);
 
                     for (const { idx } of student.hospitalScores) {
                         const hospital = remaining[idx];
                         for (const dept of deptOrder) {
-                            const key = `${classId}_${dept}`;
+                            const key = `${slotId}_${dept.id}`;
                             if (hospital[key] > 0) {
                                 hospital[key]--;
-                                if (dept === 'nicu') nicuCount++; else pedsCount++;
-
+                                deptCounts[dept.id]++;
                                 classResults.push({
-                                    studentId: student.studentId,
-                                    name: student.name,
-                                    class: student.class,
-                                    address: student.address,
-                                    hospitalIdx: idx,
-                                    hospitalName: hospital.name,
-                                    hospitalAddr: hospital.address,
-                                    dept: dept,
-                                    score: student.hospitalScores.find(h => h.idx === idx).score,
-                                    slot: classId
+                                    studentId: student.studentId, name: student.name, classId: student.classId, className: student.className,
+                                    address: student.address, hospitalIdx: idx, hospitalName: hospital.name, hospitalAddr: hospital.address,
+                                    deptId: dept.id, deptName: dept.name, score: student.hospitalScores.find(h => h.idx === idx).score, slotId
                                 });
                                 placed = true;
                                 break;
@@ -1208,119 +1647,73 @@
                         }
                         if (placed) break;
                     }
-
-                    if (!placed) {
-                        unplacedStudents.push(student);
-                    }
+                    if (!placed) unplacedStudents.push(student);
                 }
 
-                // ★ 최적화 2: 교환 개선 (Swap Improvement)
-                // 배치된 학생들 간 교환으로 전체 점수 향상
-                let improved = true;
-                let iterations = 0;
-                const maxIterations = 100;
-
-                while (improved && iterations < maxIterations) {
-                    improved = false;
-                    iterations++;
-
+                // 교환 개선
+                let improved = true, iterations = 0;
+                while (improved && iterations < 100) {
+                    improved = false; iterations++;
                     for (let i = 0; i < classResults.length; i++) {
                         for (let j = i + 1; j < classResults.length; j++) {
-                            const r1 = classResults[i];
-                            const r2 = classResults[j];
-
-                            // 같은 부서일 때만 교환 가능
-                            if (r1.dept !== r2.dept) continue;
-
-                            // 교환 후 점수 계산
-                            const student1 = classStudents.find(s => s.studentId === r1.studentId);
-                            const student2 = classStudents.find(s => s.studentId === r2.studentId);
-
+                            const r1 = classResults[i], r2 = classResults[j];
+                            if (r1.deptId !== r2.deptId) continue;
+                            const s1 = classStudents.find(s => s.studentId === r1.studentId);
+                            const s2 = classStudents.find(s => s.studentId === r2.studentId);
                             const currentScore = r1.score + r2.score;
-                            const newScore1 = calculateAddressScore(student1.address, remaining[r2.hospitalIdx].address);
-                            const newScore2 = calculateAddressScore(student2.address, remaining[r1.hospitalIdx].address);
-                            const swappedScore = newScore1 + newScore2;
-
-                            // 교환이 이득이면 실행
-                            if (swappedScore > currentScore) {
-                                // 병원 교환 (주소도 함께 교환)
-                                const tempIdx = r1.hospitalIdx;
-                                const tempName = r1.hospitalName;
-                                const tempAddr = r1.hospitalAddr;
-                                r1.hospitalIdx = r2.hospitalIdx;
-                                r1.hospitalName = r2.hospitalName;
-                                r1.hospitalAddr = r2.hospitalAddr;
-                                r1.score = newScore1;
-                                r2.hospitalIdx = tempIdx;
-                                r2.hospitalName = tempName;
-                                r2.hospitalAddr = tempAddr;
-                                r2.score = newScore2;
+                            const newScore1 = calculateAddressScore(s1.address, remaining[r2.hospitalIdx].address);
+                            const newScore2 = calculateAddressScore(s2.address, remaining[r1.hospitalIdx].address);
+                            if (newScore1 + newScore2 > currentScore) {
+                                [r1.hospitalIdx, r2.hospitalIdx] = [r2.hospitalIdx, r1.hospitalIdx];
+                                [r1.hospitalName, r2.hospitalName] = [r2.hospitalName, r1.hospitalName];
+                                [r1.hospitalAddr, r2.hospitalAddr] = [r2.hospitalAddr, r1.hospitalAddr];
+                                r1.score = newScore1; r2.score = newScore2;
                                 improved = true;
                             }
                         }
                     }
                 }
 
-                // 결과 저장
                 classResults.forEach(r => {
                     results.push({
-                        studentId: r.studentId,
-                        name: r.name,
-                        class: r.class,
-                        period: CLASS_PERIODS[r.class],
-                        placementSlot: r.slot,
-                        isMixed: false,
-                        address: r.address,
-                        hospital: r.hospitalName,
-                        hospitalAddr: r.hospitalAddr,
-                        department: r.dept === 'nicu' ? '신생아실' : '소아과',
-                        deptKey: r.dept,
-                        score: r.score,
-                        status: '배치완료'
+                        studentId: r.studentId, name: r.name, classId: r.classId, className: r.className,
+                        period: getWeekRangeForClass(groupIdx), slotId: r.slotId, isMixed: false, address: r.address,
+                        hospital: r.hospitalName, hospitalAddr: r.hospitalAddr, deptId: r.deptId, department: r.deptName,
+                        score: r.score, status: '배치완료'
                     });
                 });
             }
 
-            // 2단계: 7-8주차 혼합 배치 (동일한 최적화 적용)
-            if (unplacedStudents.length > 0) {
-                // 점수 재계산
+            // 추가 배치
+            const mixedSlot = slots.find(s => s.isMixed);
+            if (mixedSlot && unplacedStudents.length > 0) {
                 unplacedStudents.forEach(student => {
                     student.hospitalScores = remaining.map((h, idx) => ({
-                        idx,
-                        hospital: h,
-                        score: calculateAddressScore(student.address, h.address)
+                        idx, hospital: h, score: calculateAddressScore(student.address, h.address)
                     })).sort((a, b) => b.score - a.score);
                     student.bestScore = student.hospitalScores[0]?.score || 0;
                 });
-
-                // 제약 많은 학생 우선
                 unplacedStudents.sort((a, b) => a.bestScore - b.bestScore);
 
+                const deptCounts = {};
+                config.departments.forEach(d => deptCounts[d.id] = 0);
                 const mixedResults = [];
-                let nicuCount = 0, pedsCount = 0;
 
                 for (const student of unplacedStudents) {
                     let placed = false;
-                    const deptOrder = nicuCount <= pedsCount ? ['nicu', 'peds'] : ['peds', 'nicu'];
+                    const deptOrder = [...config.departments].sort((a, b) => deptCounts[a.id] - deptCounts[b.id]);
 
                     for (const { idx } of student.hospitalScores) {
                         const hospital = remaining[idx];
                         for (const dept of deptOrder) {
-                            const key = `mixed_${dept}`;
+                            const key = `${mixedSlot.id}_${dept.id}`;
                             if (hospital[key] > 0) {
                                 hospital[key]--;
-                                if (dept === 'nicu') nicuCount++; else pedsCount++;
-
+                                deptCounts[dept.id]++;
                                 mixedResults.push({
-                                    studentId: student.studentId,
-                                    name: student.name,
-                                    class: student.class,
-                                    address: student.address,
-                                    hospitalIdx: idx,
-                                    hospitalName: hospital.name,
-                                    hospitalAddr: hospital.address,
-                                    dept: dept,
-                                    score: student.hospitalScores.find(h => h.idx === idx).score
+                                    studentId: student.studentId, name: student.name, classId: student.classId, className: student.className,
+                                    address: student.address, hospitalIdx: idx, hospitalName: hospital.name, hospitalAddr: hospital.address,
+                                    deptId: dept.id, deptName: dept.name, score: student.hospitalScores.find(h => h.idx === idx).score
                                 });
                                 placed = true;
                                 break;
@@ -1331,74 +1724,20 @@
 
                     if (!placed) {
                         results.push({
-                            studentId: student.studentId,
-                            name: student.name,
-                            class: student.class,
-                            period: '-',
-                            placementSlot: null,
-                            isMixed: false,
-                            address: student.address,
-                            hospital: '-',
-                            department: '-',
-                            deptKey: null,
-                            score: 0,
-                            status: '미배치'
+                            studentId: student.studentId, name: student.name, classId: student.classId, className: student.className,
+                            period: '-', slotId: null, isMixed: false, address: student.address, hospital: '-', department: '-',
+                            deptId: null, score: 0, status: '미배치'
                         });
                     }
                 }
 
-                // 혼합 배치도 교환 개선
-                let improved = true;
-                let iterations = 0;
-                while (improved && iterations < 100) {
-                    improved = false;
-                    iterations++;
-                    for (let i = 0; i < mixedResults.length; i++) {
-                        for (let j = i + 1; j < mixedResults.length; j++) {
-                            const r1 = mixedResults[i];
-                            const r2 = mixedResults[j];
-                            if (r1.dept !== r2.dept) continue;
-
-                            const student1 = unplacedStudents.find(s => s.studentId === r1.studentId);
-                            const student2 = unplacedStudents.find(s => s.studentId === r2.studentId);
-
-                            const currentScore = r1.score + r2.score;
-                            const newScore1 = calculateAddressScore(student1.address, remaining[r2.hospitalIdx].address);
-                            const newScore2 = calculateAddressScore(student2.address, remaining[r1.hospitalIdx].address);
-
-                            if (newScore1 + newScore2 > currentScore) {
-                                const tempIdx = r1.hospitalIdx;
-                                const tempName = r1.hospitalName;
-                                const tempAddr = r1.hospitalAddr;
-                                r1.hospitalIdx = r2.hospitalIdx;
-                                r1.hospitalName = r2.hospitalName;
-                                r1.hospitalAddr = r2.hospitalAddr;
-                                r1.score = newScore1;
-                                r2.hospitalIdx = tempIdx;
-                                r2.hospitalName = tempName;
-                                r2.hospitalAddr = tempAddr;
-                                r2.score = newScore2;
-                                improved = true;
-                            }
-                        }
-                    }
-                }
-
+                const regularWeeks = config.classGroups.length * config.weeksPerClass;
                 mixedResults.forEach(r => {
                     results.push({
-                        studentId: r.studentId,
-                        name: r.name,
-                        class: r.class,
-                        period: '7-8주차',
-                        placementSlot: 'mixed',
-                        isMixed: true,
-                        address: r.address,
-                        hospital: r.hospitalName,
-                        hospitalAddr: r.hospitalAddr,
-                        department: r.dept === 'nicu' ? '신생아실' : '소아과',
-                        deptKey: r.dept,
-                        score: r.score,
-                        status: '배치완료'
+                        studentId: r.studentId, name: r.name, classId: r.classId, className: r.className,
+                        period: `${regularWeeks + 1}-${config.totalWeeks}주`, slotId: 'mixed', isMixed: true, address: r.address,
+                        hospital: r.hospitalName, hospitalAddr: r.hospitalAddr, deptId: r.deptId, department: r.deptName,
+                        score: r.score, status: '배치완료'
                     });
                 });
             }
@@ -1409,94 +1748,40 @@
         function calculateAddressScore(studentAddr, hospitalAddr) {
             const studentParts = extractAddressParts(studentAddr);
             const hospitalParts = extractAddressParts(hospitalAddr);
-
             let score = 0;
 
-            // 1. 같은 지역이면 최고 점수
-            if (studentParts.region && hospitalParts.region && studentParts.region === hospitalParts.region) {
-                score += 100;
-            }
+            if (studentParts.region && hospitalParts.region && studentParts.region === hospitalParts.region) score += 100;
 
-            // 2. 인접 지역 보너스
             const adjacent = {
-                // 서울시 구
-                '강남구': ['서초구', '송파구', '강동구', '성남시', '분당구'],
-                '서초구': ['강남구', '동작구', '관악구', '과천시', '성남시'],
-                '송파구': ['강남구', '강동구', '광진구', '하남시', '성남시'],
-                '강동구': ['송파구', '광진구', '하남시', '구리시'],
-                '종로구': ['성북구', '동대문구', '중구', '서대문구', '은평구'],
-                '서대문구': ['종로구', '마포구', '은평구', '고양시'],
-                '성북구': ['종로구', '동대문구', '강북구', '노원구', '의정부시'],
-                '마포구': ['서대문구', '용산구', '은평구', '고양시'],
-                '용산구': ['마포구', '중구', '성동구', '동작구'],
-                '중구': ['종로구', '용산구', '성동구', '동대문구'],
-                '동대문구': ['중구', '종로구', '성북구', '광진구', '중랑구'],
-                '광진구': ['동대문구', '성동구', '송파구', '강동구', '중랑구', '구리시'],
-                '성동구': ['광진구', '중구', '용산구', '동대문구'],
-                '강북구': ['노원구', '도봉구', '성북구', '의정부시'],
-                '노원구': ['도봉구', '강북구', '성북구', '중랑구', '의정부시', '남양주시'],
-                '도봉구': ['노원구', '강북구', '의정부시', '양주시'],
-                '중랑구': ['노원구', '동대문구', '광진구', '구리시', '남양주시'],
-                '은평구': ['서대문구', '마포구', '종로구', '고양시'],
-                '동작구': ['서초구', '관악구', '영등포구', '용산구'],
-                '관악구': ['서초구', '동작구', '금천구', '과천시', '안양시'],
-                '영등포구': ['동작구', '양천구', '강서구', '구로구', '광명시'],
-                '양천구': ['영등포구', '강서구', '구로구', '부천시'],
-                '강서구': ['양천구', '영등포구', '부천시', '김포시', '고양시'],
-                '구로구': ['영등포구', '양천구', '금천구', '광명시', '부천시'],
+                '강남구': ['서초구', '송파구', '강동구', '성남시', '분당구'], '서초구': ['강남구', '동작구', '관악구', '과천시', '성남시'],
+                '송파구': ['강남구', '강동구', '광진구', '하남시', '성남시'], '강동구': ['송파구', '광진구', '하남시', '구리시'],
+                '종로구': ['성북구', '동대문구', '중구', '서대문구', '은평구'], '서대문구': ['종로구', '마포구', '은평구', '고양시'],
+                '성북구': ['종로구', '동대문구', '강북구', '노원구', '의정부시'], '마포구': ['서대문구', '용산구', '은평구', '고양시'],
+                '용산구': ['마포구', '중구', '성동구', '동작구'], '중구': ['종로구', '용산구', '성동구', '동대문구'],
+                '동대문구': ['중구', '종로구', '성북구', '광진구', '중랑구'], '광진구': ['동대문구', '성동구', '송파구', '강동구', '중랑구', '구리시'],
+                '성동구': ['광진구', '중구', '용산구', '동대문구'], '강북구': ['노원구', '도봉구', '성북구', '의정부시'],
+                '노원구': ['도봉구', '강북구', '성북구', '중랑구', '의정부시', '남양주시'], '도봉구': ['노원구', '강북구', '의정부시', '양주시'],
+                '중랑구': ['노원구', '동대문구', '광진구', '구리시', '남양주시'], '은평구': ['서대문구', '마포구', '종로구', '고양시'],
+                '동작구': ['서초구', '관악구', '영등포구', '용산구'], '관악구': ['서초구', '동작구', '금천구', '과천시', '안양시'],
+                '영등포구': ['동작구', '양천구', '강서구', '구로구', '광명시'], '양천구': ['영등포구', '강서구', '구로구', '부천시'],
+                '강서구': ['양천구', '영등포구', '부천시', '김포시', '고양시'], '구로구': ['영등포구', '양천구', '금천구', '광명시', '부천시'],
                 '금천구': ['구로구', '관악구', '광명시', '안양시'],
-
-                // 경기도 시
                 '성남시': ['강남구', '서초구', '송파구', '분당구', '수정구', '중원구', '광주시', '하남시', '용인시'],
                 '분당구': ['강남구', '서초구', '성남시', '수정구', '중원구', '용인시', '광주시'],
-                '수정구': ['성남시', '분당구', '중원구', '하남시', '광주시'],
-                '중원구': ['성남시', '분당구', '수정구', '하남시'],
-                '용인시': ['성남시', '분당구', '수원시', '광주시', '안성시', '화성시'],
-                '수원시': ['용인시', '화성시', '안양시', '의왕시', '안산시', '오산시'],
-                '화성시': ['수원시', '용인시', '오산시', '평택시', '안산시'],
-                '안양시': ['관악구', '금천구', '과천시', '의왕시', '수원시', '군포시', '광명시'],
-                '과천시': ['서초구', '관악구', '안양시', '의왕시', '성남시'],
-                '의왕시': ['안양시', '과천시', '수원시', '군포시', '성남시'],
-                '군포시': ['안양시', '의왕시', '안산시', '수원시'],
-                '안산시': ['시흥시', '군포시', '수원시', '화성시', '광명시'],
-                '시흥시': ['안산시', '광명시', '부천시', '안양시', '인천'],
-                '광명시': ['영등포구', '구로구', '금천구', '안양시', '시흥시', '부천시'],
-                '부천시': ['양천구', '강서구', '구로구', '광명시', '시흥시', '김포시', '인천'],
-                '김포시': ['강서구', '부천시', '고양시', '인천', '파주시'],
-                '고양시': ['서대문구', '마포구', '은평구', '강서구', '김포시', '파주시', '양주시'],
-                '파주시': ['고양시', '김포시', '양주시', '연천군'],
-                '양주시': ['도봉구', '의정부시', '고양시', '파주시', '동두천시', '포천시'],
-                '의정부시': ['강북구', '도봉구', '노원구', '양주시', '남양주시', '포천시'],
-                '남양주시': ['노원구', '중랑구', '구리시', '의정부시', '가평군', '포천시'],
-                '구리시': ['강동구', '광진구', '중랑구', '남양주시', '하남시'],
-                '하남시': ['송파구', '강동구', '구리시', '남양주시', '성남시', '광주시'],
-                '광주시': ['성남시', '하남시', '용인시', '여주시', '이천시'],
-                '이천시': ['광주시', '여주시', '용인시', '안성시'],
-                '여주시': ['광주시', '이천시', '양평군'],
-                '안성시': ['용인시', '이천시', '평택시', '천안시'],
-                '평택시': ['화성시', '안성시', '오산시', '천안시', '아산시'],
-                '오산시': ['수원시', '화성시', '평택시', '용인시'],
-                '동두천시': ['양주시', '포천시', '연천군'],
-                '포천시': ['의정부시', '양주시', '남양주시', '동두천시', '가평군', '연천군'],
-                '가평군': ['남양주시', '포천시', '양평군'],
-                '양평군': ['가평군', '여주시', '광주시'],
-                '연천군': ['파주시', '동두천시', '포천시'],
-
-                // 인천
-                '인천': ['부천시', '시흥시', '김포시'],
-                '인천시': ['부천시', '시흥시', '김포시']
+                '용인시': ['성남시', '분당구', '수원시', '광주시', '안성시', '화성시'], '수원시': ['용인시', '화성시', '안양시', '의왕시', '안산시', '오산시'],
+                '안양시': ['관악구', '금천구', '과천시', '의왕시', '수원시', '군포시', '광명시'], '과천시': ['서초구', '관악구', '안양시', '의왕시', '성남시'],
+                '광명시': ['영등포구', '구로구', '금천구', '안양시', '시흥시', '부천시'], '부천시': ['양천구', '강서구', '구로구', '광명시', '시흥시', '김포시', '인천'],
+                '고양시': ['서대문구', '마포구', '은평구', '강서구', '김포시', '파주시', '양주시'], '의정부시': ['강북구', '도봉구', '노원구', '양주시', '남양주시', '포천시'],
+                '남양주시': ['노원구', '중랑구', '구리시', '의정부시', '가평군', '포천시'], '구리시': ['강동구', '광진구', '중랑구', '남양주시', '하남시'],
+                '하남시': ['송파구', '강동구', '구리시', '남양주시', '성남시', '광주시'], '광주시': ['성남시', '하남시', '용인시', '여주시', '이천시'],
+                '인천': ['부천시', '시흥시', '김포시'], '인천시': ['부천시', '시흥시', '김포시']
             };
 
-            if (studentParts.region && hospitalParts.region) {
-                if (adjacent[studentParts.region] && adjacent[studentParts.region].includes(hospitalParts.region)) {
-                    score += 50;
-                }
-            }
+            if (studentParts.region && hospitalParts.region && adjacent[studentParts.region]?.includes(hospitalParts.region)) score += 50;
 
-            // 3. 같은 권역 보너스 (대분류)
             const regions = {
-                '서울북부': ['종로구', '성북구', '강북구', '노원구', '도봉구', '동대문구', '중랑구', '의정부시', '양주시', '포천시', '동두천시', '연천군'],
-                '서울동부': ['광진구', '성동구', '중구', '구리시', '남양주시', '하남시', '가평군'],
+                '서울북부': ['종로구', '성북구', '강북구', '노원구', '도봉구', '동대문구', '중랑구', '의정부시', '양주시', '포천시'],
+                '서울동부': ['광진구', '성동구', '중구', '구리시', '남양주시', '하남시'],
                 '서울서부': ['서대문구', '마포구', '은평구', '고양시', '파주시', '김포시'],
                 '서울남서': ['영등포구', '양천구', '강서구', '구로구', '금천구', '광명시', '부천시', '시흥시', '인천', '인천시'],
                 '서울남부': ['동작구', '관악구', '안양시', '과천시', '의왕시', '군포시', '안산시'],
@@ -1504,63 +1789,28 @@
                 '수원권': ['수원시', '용인시', '화성시', '오산시', '평택시', '안성시', '이천시', '여주시']
             };
 
-            for (const [regionName, areas] of Object.entries(regions)) {
-                if (areas.includes(studentParts.region) && areas.includes(hospitalParts.region)) {
-                    score += 25; // 같은 권역이면 추가 점수
-                    break;
-                }
+            for (const areas of Object.values(regions)) {
+                if (areas.includes(studentParts.region) && areas.includes(hospitalParts.region)) { score += 25; break; }
             }
 
-            // 기본 점수 (안정적인 정렬을 위해)
-            score += Math.random() * 3;
-
-            return score;
+            return score + Math.random() * 3;
         }
 
         function extractAddressParts(address) {
-            const parts = { region: null, dong: null };
-            if (!address) return parts;
-
-            // 1. 경기도 시/군 추출 (예: 파주시, 성남시, 김포시)
+            if (!address) return { region: null };
+            const guMatch = address.match(/([가-힣]+구)/);
             const cityMatch = address.match(/([가-힣]+[시군])/);
 
-            // 2. 서울 구 추출 (예: 강남구, 종로구)
-            const guMatch = address.match(/([가-힣]+구)/);
+            const seoulGu = ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구', '노원구', '도봉구', '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구', '성북구', '송파구', '양천구', '영등포구', '용산구', '은평구', '종로구', '중구', '중랑구'];
+            const seongnamGu = ['분당구', '수정구', '중원구'];
 
-            // 3. 동 추출
-            const dongMatch = address.match(/([가-힣]+[동읍면리])/);
-
-            // 우선순위: 구 > 시/군 (서울 주소에서 "서울시 강남구"처럼 둘 다 있을 수 있음)
-            // 하지만 "성남시 분당구"처럼 경기도 시 + 구 조합도 있음
             if (guMatch) {
                 const gu = guMatch[1];
-                // 서울의 구인지 확인
-                const seoulGu = ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구',
-                    '노원구', '도봉구', '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구',
-                    '성북구', '송파구', '양천구', '영등포구', '용산구', '은평구', '종로구', '중구', '중랑구'];
-                // 성남시의 구
-                const seongnamGu = ['분당구', '수정구', '중원구'];
-                // 용인시, 수원시 등의 구
-                const gyeonggiGu = ['처인구', '기흥구', '수지구', '장안구', '권선구', '팔달구', '영통구',
-                    '덕양구', '일산동구', '일산서구', '만안구', '동안구', '상록구', '단원구',
-                    '부평구', '계양구', '남동구', '연수구', '미추홀구', '중구', '동구', '서구'];
-
-                if (seoulGu.includes(gu)) {
-                    parts.region = gu;
-                } else if (seongnamGu.includes(gu) || gyeonggiGu.includes(gu)) {
-                    // 경기도 구는 그대로 사용 (분당구, 수정구 등)
-                    parts.region = gu;
-                } else if (cityMatch) {
-                    // 알 수 없는 구이면 시 사용
-                    parts.region = cityMatch[1];
-                }
-            } else if (cityMatch) {
-                parts.region = cityMatch[1];
+                if (seoulGu.includes(gu) || seongnamGu.includes(gu)) return { region: gu };
+                if (cityMatch) return { region: cityMatch[1] };
             }
-
-            if (dongMatch) parts.dong = dongMatch[1];
-
-            return parts;
+            if (cityMatch) return { region: cityMatch[1] };
+            return { region: null };
         }
 
         // ====== 결과 표시 ======
@@ -1568,254 +1818,150 @@
             document.getElementById('noResultMessage').style.display = 'none';
             document.getElementById('resultContent').style.display = 'block';
 
-            // 통계 업데이트
             const total = students.length;
             const placed = placementResult.filter(r => r.status === '배치완료').length;
-            const unplaced = total - placed;
-            const rate = total > 0 ? Math.round((placed / total) * 100) : 0;
-            const lowScoreCount = placementResult.filter(r => r.status === '배치완료' && (r.score || 0) < 50).length;
 
             document.getElementById('statTotal').textContent = total;
             document.getElementById('statPlaced').textContent = placed;
-            document.getElementById('statUnplaced').textContent = unplaced;
-            document.getElementById('statRate').textContent = rate + '%';
+            document.getElementById('statUnplaced').textContent = total - placed;
+            document.getElementById('statRate').textContent = total > 0 ? Math.round((placed / total) * 100) + '%' : '0%';
 
-            // 원거리 배치 경고
-            const warningDiv = document.getElementById('lowScoreWarning');
-            if (lowScoreCount > 0) {
-                if (!warningDiv) {
-                    const warning = document.createElement('div');
-                    warning.id = 'lowScoreWarning';
-                    warning.className = 'alert alert-warning mb-3';
-                    warning.innerHTML = `
-                        <strong>⚠️ 원거리 배치 ${lowScoreCount}건 발견</strong><br>
-                        <small>학생 주소와 병원 위치가 멀리 떨어진 배치가 있습니다.
-                        "원거리 배치" 필터를 클릭하여 확인하세요.<br>
-                        <strong>원인:</strong> 가까운 병원 티오가 부족하거나, 병원 주소(구/시) 설정이 잘못되었을 수 있습니다.</small>
-                    `;
-                    document.getElementById('statsRow').after(warning);
-                } else {
-                    warningDiv.innerHTML = `
-                        <strong>⚠️ 원거리 배치 ${lowScoreCount}건 발견</strong><br>
-                        <small>학생 주소와 병원 위치가 멀리 떨어진 배치가 있습니다.
-                        "원거리 배치" 필터를 클릭하여 확인하세요.<br>
-                        <strong>원인:</strong> 가까운 병원 티오가 부족하거나, 병원 주소(구/시) 설정이 잘못되었을 수 있습니다.</small>
-                    `;
-                    warningDiv.style.display = 'block';
-                }
-            } else if (warningDiv) {
-                warningDiv.style.display = 'none';
-            }
-
-            // 결과 테이블
+            renderFilterButtons();
+            renderResultTableHeader();
             filterResult('all');
-
-            // 병원별 현황
             showHospitalSummary();
-
-            // 결과 탭으로 이동
             document.getElementById('result-tab').click();
         }
 
+        function renderFilterButtons() {
+            const container = document.getElementById('filterButtons');
+            let html = '<span class="me-3 fw-bold">필터:</span>';
+            html += '<button class="filter-btn active" data-filter="all" onclick="filterResult(\'all\')">전체</button>';
+            config.classGroups.forEach(g => {
+                html += `<button class="filter-btn" data-filter="${g.id}" onclick="filterResult('${g.id}')" style="border-color: ${g.textColor};">${g.name}</button>`;
+            });
+            html += '<span class="mx-1">|</span>';
+            config.departments.forEach(d => {
+                html += `<button class="filter-btn" data-filter="${d.id}" onclick="filterResult('${d.id}')" style="border-color: ${d.textColor};">${d.name}</button>`;
+            });
+            html += '<span class="mx-1">|</span>';
+            html += '<button class="filter-btn text-danger" data-filter="lowscore" onclick="filterResult(\'lowscore\')">원거리</button>';
+            container.innerHTML = html;
+        }
+
+        function renderResultTableHeader() {
+            document.getElementById('resultTableHead').innerHTML = '<tr><th>학번</th><th>이름</th><th>분반</th><th>실습기간</th><th>주소</th><th>배정병원</th><th>실습병동</th><th>상태</th></tr>';
+        }
+
         function filterResult(filter) {
-            // 버튼 활성화
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.filter === filter) btn.classList.add('active');
+                btn.classList.toggle('active', btn.dataset.filter === filter);
             });
 
-            let filtered;
-            if (filter === 'all') {
-                filtered = placementResult;
-            } else if (filter === 'nicu') {
-                filtered = placementResult.filter(r => r.deptKey === 'nicu');
-            } else if (filter === 'peds') {
-                filtered = placementResult.filter(r => r.deptKey === 'peds');
-            } else if (filter === 'regular') {
-                filtered = placementResult.filter(r => !r.isMixed && r.status === '배치완료');
-            } else if (filter === 'mixed') {
-                filtered = placementResult.filter(r => r.isMixed);
-            } else if (filter === 'lowscore') {
-                // 낮은 점수 (먼 거리) 배치만 필터
-                filtered = placementResult.filter(r => r.status === '배치완료' && (r.score || 0) < 50);
-            } else {
-                // A, B, C 반 필터
-                filtered = placementResult.filter(r => r.class === filter);
-            }
+            let filtered = placementResult;
+            if (filter === 'lowscore') filtered = placementResult.filter(r => r.status === '배치완료' && (r.score || 0) < 50);
+            else if (config.classGroups.find(g => g.id === filter)) filtered = placementResult.filter(r => r.classId === filter);
+            else if (config.departments.find(d => d.id === filter)) filtered = placementResult.filter(r => r.deptId === filter);
 
             document.getElementById('resultCount').textContent = filtered.length + '명';
 
-            const tbody = document.getElementById('resultTableBody');
-            tbody.innerHTML = filtered.map(r => {
+            document.getElementById('resultTableBody').innerHTML = filtered.map(r => {
                 const score = r.score || 0;
                 const isLowScore = r.status === '배치완료' && score < 50;
+                const scoreLabel = score >= 100 ? '동일지역' : score >= 50 ? '인접지역' : '원거리';
                 const scoreClass = score >= 100 ? 'text-success' : score >= 50 ? 'text-primary' : 'text-danger';
-                const scoreLabel = score >= 100 ? '동일지역' : score >= 50 ? '인접지역' : '원거리⚠️';
+                const group = config.classGroups.find(g => g.id === r.classId);
+                const dept = config.departments.find(d => d.id === r.deptId);
+                const classStyle = group ? `background: ${group.color}; color: ${group.textColor};` : '';
+                const deptStyle = dept ? `background: ${dept.color}; color: ${dept.textColor};` : '';
 
                 return `
                 <tr class="${r.status === '미배치' ? 'table-danger' : isLowScore ? 'table-warning' : r.isMixed ? 'table-info' : ''}">
-                    <td>${r.studentId}</td>
-                    <td>${r.name}</td>
-                    <td><span class="badge badge-class-${r.class}">${r.class}반</span></td>
-                    <td><span class="badge ${r.isMixed ? 'period-mixed' : 'bg-secondary'} period-badge">${r.period}</span></td>
+                    <td>${r.studentId}</td><td>${r.name}</td>
+                    <td><span class="badge" style="${classStyle}">${r.className}</span></td>
+                    <td><span class="badge ${r.isMixed ? '' : 'bg-secondary'}" style="${r.isMixed ? 'background: #8b5cf6; color: white;' : ''}">${r.period}</span></td>
                     <td>${r.address}</td>
                     <td>${r.hospital}${r.hospitalAddr ? `<br><small class="text-muted">(${r.hospitalAddr})</small>` : ''}</td>
-                    <td>
-                        ${r.department !== '-' ?
-                            `<span class="badge ${r.deptKey === 'nicu' ? 'dept-nicu' : 'dept-peds'}">${r.department}</span>`
-                            : '-'}
-                    </td>
-                    <td>
-                        ${r.status === '배치완료' ?
-                            `<span class="badge ${isLowScore ? 'bg-warning text-dark' : 'bg-success'}">${r.isMixed ? '혼합' : '완료'}</span>
-                             <br><small class="${scoreClass}">${scoreLabel}</small>`
-                            : `<span class="badge bg-danger">미배치</span>`
-                        }
-                    </td>
-                </tr>
-            `}).join('');
+                    <td>${r.department !== '-' ? `<span class="badge" style="${deptStyle}">${r.department}</span>` : '-'}</td>
+                    <td>${r.status === '배치완료' ? `<span class="badge ${isLowScore ? 'bg-warning text-dark' : 'bg-success'}">${r.isMixed ? '추가' : '완료'}</span><br><small class="${scoreClass}">${scoreLabel}</small>` : '<span class="badge bg-danger">미배치</span>'}</td>
+                </tr>`;
+            }).join('');
         }
 
         function showHospitalSummary() {
             const slots = getPlacementSlots();
             const summary = {};
-
-            // 결과 테이블 헤더도 동적 업데이트
-            updateResultTableHeaders();
-
             hospitals.forEach(h => {
                 summary[h.name] = {};
                 slots.forEach(slot => {
-                    summary[h.name][slot] = {
-                        nicu: { placed: 0, total: h[`${slot}_nicu`] || 0 },
-                        peds: { placed: 0, total: h[`${slot}_peds`] || 0 }
-                    };
+                    summary[h.name][slot.id] = {};
+                    config.departments.forEach(dept => {
+                        summary[h.name][slot.id][dept.id] = { placed: 0, total: h[`${slot.id}_${dept.id}`] || 0 };
+                    });
                 });
             });
 
             placementResult.forEach(r => {
-                if (r.hospital !== '-' && summary[r.hospital] && r.placementSlot) {
-                    const slot = r.placementSlot;
-                    if (summary[r.hospital][slot]) {
-                        if (r.deptKey === 'nicu') {
-                            summary[r.hospital][slot].nicu.placed++;
-                        } else if (r.deptKey === 'peds') {
-                            summary[r.hospital][slot].peds.placed++;
-                        }
-                    }
+                if (r.hospital !== '-' && summary[r.hospital] && r.slotId && summary[r.hospital][r.slotId]?.[r.deptId]) {
+                    summary[r.hospital][r.slotId][r.deptId].placed++;
                 }
             });
 
-            const tbody = document.getElementById('hospitalSummaryBody');
-            tbody.innerHTML = Object.entries(summary).map(([name, data]) => {
-                let totalPlaced = 0;
-                let cells = '';
-
-                slots.forEach(slot => {
-                    const nicu = data[slot].nicu;
-                    const peds = data[slot].peds;
-                    totalPlaced += nicu.placed + peds.placed;
-
-                    const nicuFull = nicu.placed >= nicu.total && nicu.total > 0;
-                    const pedsFull = peds.placed >= peds.total && peds.total > 0;
-
-                    cells += `
-                        <td class="text-center ${nicuFull ? 'text-success fw-bold' : ''}" style="font-size:0.8rem;">
-                            ${nicu.total > 0 ? `${nicu.placed}/${nicu.total}` : '-'}
-                        </td>
-                        <td class="text-center ${pedsFull ? 'text-success fw-bold' : ''}" style="font-size:0.8rem;">
-                            ${peds.total > 0 ? `${peds.placed}/${peds.total}` : '-'}
-                        </td>
-                    `;
+            let headerRow1 = '<th rowspan="2" class="align-middle text-center">병원명</th>';
+            let headerRow2 = '';
+            slots.forEach(slot => {
+                const group = config.classGroups.find(g => g.id === slot.classId);
+                const style = group ? `background: ${group.color}; color: ${group.textColor};` : 'background: #ede9fe; color: #7c3aed;';
+                headerRow1 += `<th colspan="${config.departments.length}" class="text-center" style="${style}; font-size: 0.7rem;">${slot.label}</th>`;
+                config.departments.forEach(dept => {
+                    headerRow2 += `<th class="text-center" style="font-size:0.65rem; background: ${dept.color};">${dept.name.substring(0, 2)}</th>`;
                 });
+            });
+            headerRow1 += '<th rowspan="2" class="align-middle text-center">총계</th>';
+            document.getElementById('hospitalSummaryHead').innerHTML = `<tr>${headerRow1}</tr><tr>${headerRow2}</tr>`;
 
-                return `
-                    <tr>
-                        <td>${name}</td>
-                        ${cells}
-                        <td class="text-center"><strong>${totalPlaced}명</strong></td>
-                    </tr>
-                `;
+            document.getElementById('hospitalSummaryBody').innerHTML = Object.entries(summary).map(([name, data]) => {
+                let totalPlaced = 0, cells = '';
+                slots.forEach(slot => {
+                    config.departments.forEach(dept => {
+                        const info = data[slot.id][dept.id];
+                        totalPlaced += info.placed;
+                        const isFull = info.placed >= info.total && info.total > 0;
+                        cells += `<td class="text-center ${isFull ? 'text-success fw-bold' : ''}" style="font-size:0.75rem;">${info.total > 0 ? `${info.placed}/${info.total}` : '-'}</td>`;
+                    });
+                });
+                return `<tr><td>${name}</td>${cells}<td class="text-center"><strong>${totalPlaced}명</strong></td></tr>`;
             }).join('');
         }
 
-        function updateResultTableHeaders() {
-            const thead = document.querySelector('#hospitalSummaryTable thead');
-            if (!thead) return;
-
-            const slots = getPlacementSlots();
-
-            // 동적 라벨 생성
-            let headerRow1 = '<th rowspan="2" class="align-middle text-center">병원명</th>';
-            let headerRow2 = '';
-
-            slots.forEach((slot, idx) => {
-                if (slot === 'mixed') {
-                    headerRow1 += `<th colspan="2" class="text-center class-header-mixed">7-8주 (혼합)</th>`;
-                } else {
-                    const weekStart = idx * 2 + 1;
-                    const weekEnd = weekStart + 1;
-                    headerRow1 += `<th colspan="2" class="text-center class-header-${slot}">${slot}반 (${weekStart}-${weekEnd}주)</th>`;
-                }
-                headerRow2 += `
-                    <th class="text-center" style="font-size:0.7rem;">신생</th>
-                    <th class="text-center" style="font-size:0.7rem;">소아</th>
-                `;
-            });
-
-            headerRow1 += '<th rowspan="2" class="align-middle text-center">총계</th>';
-
-            thead.innerHTML = `<tr>${headerRow1}</tr><tr>${headerRow2}</tr>`;
-        }
-
-        // ====== 결과 다운로드 ======
         function downloadResult() {
-            if (placementResult.length === 0) {
-                alert('다운로드할 결과가 없습니다.');
-                return;
-            }
+            if (placementResult.length === 0) { alert('다운로드할 결과가 없습니다.'); return; }
 
             const ws = XLSX.utils.json_to_sheet(placementResult.map(r => ({
-                '학번': r.studentId,
-                '이름': r.name,
-                '반': r.class + '반',
-                '실습기간': r.period,
-                '배치유형': r.isMixed ? '7-8주 혼합' : '정규배치',
-                '주소': r.address,
-                '배정병원': r.hospital,
-                '실습부서': r.department,
-                '상태': r.status
+                '학번': r.studentId, '이름': r.name, '분반': r.className, '실습기간': r.period,
+                '배치유형': r.isMixed ? '추가배치' : '정규배치', '주소': r.address, '배정병원': r.hospital, '실습병동': r.department, '상태': r.status
             })));
 
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '배치결과');
 
-            // 병원별 요약 시트
-            const summaryData = [];
             const slots = getPlacementSlots();
-
-            // 동적 라벨 생성
-            const slotLabels = {};
-            classOrder.forEach((cls, idx) => {
-                const weekStart = idx * 2 + 1;
-                const weekEnd = weekStart + 1;
-                slotLabels[cls] = `${cls}반(${weekStart}-${weekEnd}주)`;
-            });
-            slotLabels['mixed'] = '7-8주(혼합)';
-
-            hospitals.forEach(h => {
+            const summaryData = hospitals.map(h => {
                 const row = { '병원명': h.name };
                 slots.forEach(slot => {
-                    const placed = placementResult.filter(r => r.hospital === h.name && r.placementSlot === slot);
-                    row[`${slotLabels[slot]}_신생아실`] = `${placed.filter(r => r.deptKey === 'nicu').length}/${h[`${slot}_nicu`] || 0}`;
-                    row[`${slotLabels[slot]}_소아과`] = `${placed.filter(r => r.deptKey === 'peds').length}/${h[`${slot}_peds`] || 0}`;
+                    config.departments.forEach(dept => {
+                        const placed = placementResult.filter(r => r.hospital === h.name && r.slotId === slot.id && r.deptId === dept.id).length;
+                        row[`${slot.label}_${dept.name}`] = `${placed}/${h[`${slot.id}_${dept.id}`] || 0}`;
+                    });
                 });
-                summaryData.push(row);
+                return row;
             });
-            const ws2 = XLSX.utils.json_to_sheet(summaryData);
-            XLSX.utils.book_append_sheet(wb, ws2, '병원별현황');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summaryData), '병원별현황');
+            XLSX.writeFile(wb, `${config.subjectName || '임상실습'}_배치결과_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
 
-            XLSX.writeFile(wb, '실습배치결과_' + new Date().toISOString().slice(0,10) + '.xlsx');
+        function showGuide() {
+            new bootstrap.Modal(document.getElementById('guideModal')).show();
         }
     </script>
 </body>
