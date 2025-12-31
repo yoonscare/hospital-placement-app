@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>범용 임상실습 배치 시스템</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --bg-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        }
+
+        * {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--bg-gradient);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 16px 16px 0 0 !important;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .upload-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--primary-color);
+            background: #eef2ff;
+        }
+
+        .setting-input {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .dept-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            margin: 0.25rem;
+            font-size: 0.85rem;
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .dept-tag button {
+            background: none;
+            border: none;
+            color: #6366f1;
+            margin-left: 0.5rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .class-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            margin: 0.25rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .hospital-table {
+            font-size: 0.8rem;
+        }
+
+        .hospital-table input[type="text"] {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.85rem;
+        }
+
+        .hospital-table input[type="number"] {
+            width: 50px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 0.25rem;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .hospital-table input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-card .label {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .result-table {
+            font-size: 0.85rem;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            display: none;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .nav-tabs .nav-link {
+            color: #64748b;
+            border: none;
+            padding: 1rem 1.5rem;
+            font-weight: 500;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            background: transparent;
+        }
+
+        .filter-btn {
+            border: 1px solid #e2e8f0;
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .table-scroll-wrapper {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        .capacity-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .capacity-box {
+            background: white;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            min-width: 120px;
+        }
+
+        .capacity-box .class-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .capacity-box .capacity-total {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .capacity-box .capacity-detail {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .schedule-preview {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .schedule-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            margin: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .color-option:hover, .color-option.selected {
+            transform: scale(1.1);
+            border-color: #1f2937;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            color: #94a3b8;
+        }
+
+        .step.active {
+            color: var(--primary-color);
+        }
+
+        .step.completed {
+            color: #10b981;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .step.active .step-number {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background: #10b981;
+            color: white;
+        }
+
+        .step-connector {
+            width: 40px;
+            height: 2px;
+            background: #e2e8f0;
+            margin: 0 0.5rem;
+        }
+
+        .step.completed + .step-connector {
+            background: #10b981;
+        }
+
+        .info-alert {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .warning-alert {
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            color: #92400e;
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="text-center">
+            <div class="spinner mx-auto mb-3"></div>
+            <p class="text-muted">배치 처리 중...</p>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="container">
+            <h1>🏥 범용 임상실습 배치 시스템</h1>
+            <p class="mb-0 opacity-75">모든 실습과목을 위한 스마트 병원 배정</p>
+        </div>
+    </header>
+
+    <div class="container pb-5">
+        <!-- 탭 네비게이션 -->
+        <ul class="nav nav-tabs mb-4" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="setup-tab" data-bs-toggle="tab" data-bs-target="#setup-panel" type="button">
+                    1️⃣ 과목/분반 설정
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="hospital-tab" data-bs-toggle="tab" data-bs-target="#hospital-panel" type="button">
+                    2️⃣ 병원 티오 설정
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-panel" type="button">
+                    3️⃣ 학생 업로드
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="result-tab" data-bs-toggle="tab" data-bs-target="#result-panel" type="button">
+                    4️⃣ 배치 결과
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="mainTabContent">
+            <!-- 과목/분반 설정 탭 -->
+            <div class="tab-pane fade show active" id="setup-panel" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">📚 실습과목 설정</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">과목명</label>
+                                <input type="text" class="form-control setting-input" id="subjectName"
+                                       placeholder="예: 성인간호학실습, 정신간호학실습" value="">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">실습 주차 수</label>
+                                <input type="number" class="form-control setting-input" id="totalWeeks"
+                                       min="1" max="16" value="8">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">분반당 실습 주</label>
+                                <input type="number" class="form-control setting-input" id="weeksPerClass"
+                                       min="1" max="8" value="2">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>👥 분반 설정</span>
+                        <button class="btn btn-sm btn-outline-primary" onclick="addClassGroup()">+ 분반 추가</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-alert mb-3">
+                            💡 실습에 참여하는 분반을 순서대로 추가하세요. 드래그로 순서를 변경할 수 있습니다.
+                        </div>
+                        <div id="classGroupList"></div>
+                        <div class="mt-3">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="addPresetClasses('ABC')">A,B,C반 추가</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="addPresetClasses('123')">1,2,3분반 추가</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>🏥 실습 병동/부서 설정</span>
+                        <button class="btn btn-sm btn-outline-primary" onclick="addDepartment()">+ 병동 추가</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-alert mb-3">
+                            💡 각 병원에서 학생들이 실습할 병동/부서를 추가하세요.
+                        </div>
+                        <div id="departmentList" class="mb-3"></div>
+                        <div class="mt-3">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="addPresetDepts('peds')">아동간호(신생아실,소아과)</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="addPresetDepts('adult')">성인간호(내과,외과)</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="addPresetDepts('psych')">정신간호(폐쇄병동,개방병동)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 스케줄 미리보기 -->
+                <div class="schedule-preview" id="schedulePreview">
+                    <h6 class="mb-3"><strong>📅 실습 스케줄 미리보기</strong></h6>
+                    <div id="scheduleDisplay"></div>
+                </div>
+
+                <div class="text-end">
+                    <button class="btn btn-outline-secondary me-2" onclick="resetSettings()">초기화</button>
+                    <button class="btn btn-primary" onclick="saveSettings()">💾 설정 저장 및 다음 단계</button>
+                </div>
+            </div>
+
+            <!-- 병원 설정 탭 -->
+            <div class="tab-pane fade" id="hospital-panel" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>🏥 실습 병원 및 분반별 티오 설정</span>
+                        <button class="btn btn-sm btn-outline-primary" onclick="addHospitalRow()">+ 병원 추가</button>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">
+                            💡 각 병원의 <strong>분반별 · 병동별</strong> 정원(티오)을 입력하세요. 마지막 열은 정규 기간에 배치되지 못한 학생들을 위한 추가 티오입니다.
+                        </p>
+                        <div class="table-scroll-wrapper">
+                            <table class="table table-bordered hospital-table mb-0" id="hospitalTable">
+                                <thead id="hospitalTableHead"></thead>
+                                <tbody id="hospitalTableBody"></tbody>
+                            </table>
+                        </div>
+
+                        <!-- 분반별 정원 요약 -->
+                        <div class="capacity-summary" id="capacitySummary"></div>
+
+                        <div class="text-end mt-3">
+                            <button class="btn btn-outline-secondary me-2" onclick="resetHospitals()">초기화</button>
+                            <button class="btn btn-primary" onclick="saveHospitals()">💾 병원 설정 저장</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 학생 업로드 탭 -->
+            <div class="tab-pane fade" id="upload-panel" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">📄 학생 명단 업로드</div>
+                    <div class="card-body">
+                        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                            <div class="mb-3">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                            </div>
+                            <h5>엑셀 파일을 드래그하거나 클릭하여 업로드</h5>
+                            <p class="text-muted mb-0">지원 형식: .xlsx, .xls, .csv</p>
+                        </div>
+                        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display: none;" onchange="handleFileUpload(event)">
+
+                        <div class="info-alert mt-4">
+                            <h6 class="mb-2"><strong>📋 필수 컬럼</strong></h6>
+                            <ul class="mb-0">
+                                <li><strong>학번</strong> - 학생 학번</li>
+                                <li><strong>이름</strong> - 학생 이름</li>
+                                <li><strong>반</strong> - 설정한 분반명 (예: A, B, C 또는 1, 2, 3)</li>
+                                <li><strong>주소</strong> - 거주지 주소 (구/시 포함)</li>
+                            </ul>
+                        </div>
+
+                        <div id="uploadPreview" style="display: none;">
+                            <h5 class="mt-4 mb-3">📊 업로드된 학생 명단</h5>
+                            <div class="row mb-3" id="classSummary"></div>
+                            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-sm table-bordered" id="previewTable">
+                                    <thead class="table-light" style="position: sticky; top: 0;">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>학번</th>
+                                            <th>이름</th>
+                                            <th>반</th>
+                                            <th>주소</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="text-end mt-3">
+                                <button class="btn btn-lg btn-primary" onclick="runPlacement()">
+                                    🚀 배치 시작하기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 배치 결과 탭 -->
+            <div class="tab-pane fade" id="result-panel" role="tabpanel">
+                <div id="resultContent" style="display: none;">
+                    <!-- 통계 카드 -->
+                    <div class="row mb-4" id="statsRow">
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-card">
+                                <div class="number" id="statTotal">0</div>
+                                <div class="label">전체 학생</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-card">
+                                <div class="number text-success" id="statPlaced">0</div>
+                                <div class="label">배치 완료</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-card">
+                                <div class="number text-danger" id="statUnplaced">0</div>
+                                <div class="label">미배치</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-card">
+                                <div class="number text-info" id="statRate">0%</div>
+                                <div class="label">배치율</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 필터 -->
+                    <div class="card mb-3">
+                        <div class="card-body py-3">
+                            <div class="d-flex flex-wrap align-items-center" id="filterButtons">
+                                <span class="me-3 fw-bold">필터:</span>
+                                <button class="filter-btn active" data-filter="all" onclick="filterResult('all')">전체</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 결과 테이블 -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>📋 배치 결과 <span class="badge bg-secondary" id="resultCount">0명</span></span>
+                            <button class="btn btn-sm btn-success" onclick="downloadResult()">
+                                📥 엑셀 다운로드
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover result-table" id="resultTable">
+                                    <thead class="table-light" id="resultTableHead"></thead>
+                                    <tbody id="resultTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 병원별 현황 -->
+                    <div class="card mt-4">
+                        <div class="card-header">🏥 병원별 배치 현황</div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered" id="hospitalSummaryTable">
+                                    <thead class="table-light" id="hospitalSummaryHead"></thead>
+                                    <tbody id="hospitalSummaryBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="noResultMessage" class="text-center py-5 text-muted">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 6v6l4 2"></path>
+                    </svg>
+                    <h5 class="mt-3">아직 배치 결과가 없습니다</h5>
+                    <p>학생 명단을 업로드하고 배치를 시작하세요.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ====== 전역 변수 ======
+        let config = {
+            subjectName: '',
+            totalWeeks: 8,
+            weeksPerClass: 2,
+            classGroups: [],  // [{id: 'A', name: 'A반', color: '#...'}]
+            departments: []   // [{id: 'ward1', name: '내과병동', color: '#...'}]
+        };
+
+        let hospitals = [];
+        let students = [];
+        let placementResult = [];
+
+        // 색상 팔레트
+        const CLASS_COLORS = [
+            '#fef3c7', '#dbeafe', '#d1fae5', '#fce7f3', '#e0e7ff', '#fed7aa', '#d9f99d', '#ccfbf1'
+        ];
+        const CLASS_TEXT_COLORS = [
+            '#b45309', '#1d4ed8', '#059669', '#be185d', '#4338ca', '#c2410c', '#65a30d', '#0d9488'
+        ];
+        const DEPT_COLORS = [
+            '#fee2e2', '#dbeafe', '#d1fae5', '#fef3c7', '#e0e7ff', '#fce7f3', '#ccfbf1', '#fed7aa'
+        ];
+        const DEPT_TEXT_COLORS = [
+            '#dc2626', '#2563eb', '#059669', '#d97706', '#4f46e5', '#db2777', '#0d9488', '#ea580c'
+        ];
+
+        // ====== 초기화 ======
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfig();
+            loadHospitals();
+            initDragDrop();
+            updateUI();
+        });
+
+        // ====== 설정 관리 ======
+        function loadConfig() {
+            const saved = localStorage.getItem('universal_config');
+            if (saved) {
+                config = JSON.parse(saved);
+                document.getElementById('subjectName').value = config.subjectName || '';
+                document.getElementById('totalWeeks').value = config.totalWeeks || 8;
+                document.getElementById('weeksPerClass').value = config.weeksPerClass || 2;
+            }
+            renderClassGroups();
+            renderDepartments();
+        }
+
+        function saveConfig() {
+            config.subjectName = document.getElementById('subjectName').value;
+            config.totalWeeks = parseInt(document.getElementById('totalWeeks').value) || 8;
+            config.weeksPerClass = parseInt(document.getElementById('weeksPerClass').value) || 2;
+            localStorage.setItem('universal_config', JSON.stringify(config));
+        }
+
+        function saveSettings() {
+            if (config.classGroups.length === 0) {
+                alert('최소 1개의 분반을 추가해주세요.');
+                return;
+            }
+            if (config.departments.length === 0) {
+                alert('최소 1개의 병동/부서를 추가해주세요.');
+                return;
+            }
+            saveConfig();
+            renderHospitalTable();
+            updateCapacitySummary();
+            alert('설정이 저장되었습니다!');
+            document.getElementById('hospital-tab').click();
+        }
+
+        function resetSettings() {
+            if (confirm('모든 설정을 초기화하시겠습니까?')) {
+                config = {
+                    subjectName: '',
+                    totalWeeks: 8,
+                    weeksPerClass: 2,
+                    classGroups: [],
+                    departments: []
+                };
+                document.getElementById('subjectName').value = '';
+                document.getElementById('totalWeeks').value = 8;
+                document.getElementById('weeksPerClass').value = 2;
+                localStorage.removeItem('universal_config');
+                renderClassGroups();
+                renderDepartments();
+                updateScheduleDisplay();
+            }
+        }
+
+        // ====== 분반 관리 ======
+        function addClassGroup(name = '', autoName = true) {
+            const id = 'class_' + Date.now();
+            const idx = config.classGroups.length;
+            const defaultName = autoName && !name ? String.fromCharCode(65 + idx) + '반' : name;
+
+            config.classGroups.push({
+                id: id,
+                name: defaultName,
+                color: CLASS_COLORS[idx % CLASS_COLORS.length],
+                textColor: CLASS_TEXT_COLORS[idx % CLASS_TEXT_COLORS.length]
+            });
+
+            saveConfig();
+            renderClassGroups();
+            updateScheduleDisplay();
+        }
+
+        function removeClassGroup(id) {
+            config.classGroups = config.classGroups.filter(c => c.id !== id);
+            saveConfig();
+            renderClassGroups();
+            updateScheduleDisplay();
+        }
+
+        function updateClassGroupName(id, name) {
+            const group = config.classGroups.find(c => c.id === id);
+            if (group) {
+                group.name = name;
+                saveConfig();
+                updateScheduleDisplay();
+            }
+        }
+
+        function renderClassGroups() {
+            const container = document.getElementById('classGroupList');
+            if (config.classGroups.length === 0) {
+                container.innerHTML = '<p class="text-muted">분반을 추가해주세요.</p>';
+                return;
+            }
+
+            container.innerHTML = config.classGroups.map((g, idx) => `
+                <div class="d-flex align-items-center mb-2 p-2 rounded" style="background: ${g.color}; border: 1px solid ${g.textColor}20;">
+                    <span class="me-2 text-muted" style="cursor: move;">≡</span>
+                    <span class="badge me-2" style="background: ${g.textColor}; min-width: 30px;">${idx + 1}</span>
+                    <input type="text" class="form-control form-control-sm me-2" style="max-width: 150px;"
+                           value="${g.name}" onchange="updateClassGroupName('${g.id}', this.value)">
+                    <span class="text-muted small me-auto">주차: ${getWeekRangeForClass(idx)}</span>
+                    <button class="btn btn-sm btn-outline-danger" onclick="removeClassGroup('${g.id}')">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function addPresetClasses(type) {
+            config.classGroups = [];
+            if (type === 'ABC') {
+                ['A반', 'B반', 'C반'].forEach((name, i) => {
+                    config.classGroups.push({
+                        id: 'class_' + Date.now() + i,
+                        name: name,
+                        color: CLASS_COLORS[i],
+                        textColor: CLASS_TEXT_COLORS[i]
+                    });
+                });
+            } else if (type === '123') {
+                ['1분반', '2분반', '3분반'].forEach((name, i) => {
+                    config.classGroups.push({
+                        id: 'class_' + Date.now() + i,
+                        name: name,
+                        color: CLASS_COLORS[i],
+                        textColor: CLASS_TEXT_COLORS[i]
+                    });
+                });
+            }
+            saveConfig();
+            renderClassGroups();
+            updateScheduleDisplay();
+        }
+
+        function getWeekRangeForClass(idx) {
+            const weeksPerClass = config.weeksPerClass || 2;
+            const start = idx * weeksPerClass + 1;
+            const end = start + weeksPerClass - 1;
+            return `${start}-${end}주`;
+        }
+
+        // ====== 병동/부서 관리 ======
+        function addDepartment(name = '') {
+            const id = 'dept_' + Date.now();
+            const idx = config.departments.length;
+
+            config.departments.push({
+                id: id,
+                name: name || '병동' + (idx + 1),
+                color: DEPT_COLORS[idx % DEPT_COLORS.length],
+                textColor: DEPT_TEXT_COLORS[idx % DEPT_TEXT_COLORS.length]
+            });
+
+            saveConfig();
+            renderDepartments();
+        }
+
+        function removeDepartment(id) {
+            config.departments = config.departments.filter(d => d.id !== id);
+            saveConfig();
+            renderDepartments();
+        }
+
+        function updateDepartmentName(id, name) {
+            const dept = config.departments.find(d => d.id === id);
+            if (dept) {
+                dept.name = name;
+                saveConfig();
+            }
+        }
+
+        function renderDepartments() {
+            const container = document.getElementById('departmentList');
+            if (config.departments.length === 0) {
+                container.innerHTML = '<p class="text-muted">병동/부서를 추가해주세요.</p>';
+                return;
+            }
+
+            container.innerHTML = config.departments.map(d => `
+                <span class="dept-tag" style="background: ${d.color}; color: ${d.textColor};">
+                    <input type="text" value="${d.name}" style="border: none; background: transparent; color: inherit; width: 80px; font-size: inherit;"
+                           onchange="updateDepartmentName('${d.id}', this.value)">
+                    <button onclick="removeDepartment('${d.id}')">✕</button>
+                </span>
+            `).join('');
+        }
+
+        function addPresetDepts(type) {
+            config.departments = [];
+            let depts = [];
+            if (type === 'peds') {
+                depts = ['신생아실', '소아과'];
+            } else if (type === 'adult') {
+                depts = ['내과병동', '외과병동'];
+            } else if (type === 'psych') {
+                depts = ['폐쇄병동', '개방병동'];
+            }
+
+            depts.forEach((name, i) => {
+                config.departments.push({
+                    id: 'dept_' + Date.now() + i,
+                    name: name,
+                    color: DEPT_COLORS[i],
+                    textColor: DEPT_TEXT_COLORS[i]
+                });
+            });
+
+            saveConfig();
+            renderDepartments();
+        }
+
+        // ====== 스케줄 표시 ======
+        function updateScheduleDisplay() {
+            const container = document.getElementById('scheduleDisplay');
+            if (config.classGroups.length === 0) {
+                container.innerHTML = '<p class="text-muted mb-0">분반을 추가하면 스케줄이 표시됩니다.</p>';
+                return;
+            }
+
+            let html = '';
+            config.classGroups.forEach((g, idx) => {
+                if (idx > 0) html += '<span class="mx-1">→</span>';
+                html += `<span class="schedule-item" style="background: ${g.color}; color: ${g.textColor};">
+                    ${getWeekRangeForClass(idx)}: ${g.name}
+                </span>`;
+            });
+
+            // 추가 배치 주차 (정규 기간 이후)
+            const regularWeeks = config.classGroups.length * config.weeksPerClass;
+            if (regularWeeks < config.totalWeeks) {
+                html += '<span class="mx-1">→</span>';
+                html += `<span class="schedule-item" style="background: #ede9fe; color: #7c3aed;">
+                    ${regularWeeks + 1}-${config.totalWeeks}주: 추가배치
+                </span>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function updateUI() {
+            updateScheduleDisplay();
+        }
+
+        // ====== 병원 관리 ======
+        function loadHospitals() {
+            const saved = localStorage.getItem('universal_hospitals');
+            if (saved) {
+                hospitals = JSON.parse(saved);
+            } else {
+                hospitals = [];
+            }
+            renderHospitalTable();
+            updateCapacitySummary();
+        }
+
+        function renderHospitalTable() {
+            if (config.classGroups.length === 0 || config.departments.length === 0) {
+                document.getElementById('hospitalTableHead').innerHTML = '';
+                document.getElementById('hospitalTableBody').innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">먼저 과목/분반 설정을 완료해주세요.</td></tr>';
+                return;
+            }
+
+            const slots = getPlacementSlots();
+            const thead = document.getElementById('hospitalTableHead');
+            const tbody = document.getElementById('hospitalTableBody');
+
+            // 헤더 생성
+            let headerRow1 = `
+                <th rowspan="2" class="align-middle text-center" style="min-width:120px;">병원명</th>
+                <th rowspan="2" class="align-middle text-center" style="min-width:100px;">주소(구/시)</th>
+            `;
+
+            slots.forEach((slot, idx) => {
+                const group = config.classGroups.find(g => g.id === slot.classId);
+                const style = group ? `background: ${group.color}; color: ${group.textColor};` : 'background: #ede9fe; color: #7c3aed;';
+                headerRow1 += `<th colspan="${config.departments.length}" class="text-center" style="${style}">
+                    ${slot.label}
+                </th>`;
+            });
+            headerRow1 += `<th rowspan="2" class="align-middle text-center" style="width:40px;"></th>`;
+
+            let headerRow2 = '';
+            slots.forEach(slot => {
+                config.departments.forEach(dept => {
+                    headerRow2 += `<th class="text-center" style="font-size:0.7rem; background: ${dept.color};">${dept.name.substring(0, 3)}</th>`;
+                });
+            });
+
+            thead.innerHTML = `<tr>${headerRow1}</tr><tr>${headerRow2}</tr>`;
+
+            // 바디 생성
+            tbody.innerHTML = hospitals.map((h, idx) => {
+                let cellsHtml = `
+                    <td><input type="text" value="${h.name || ''}" onchange="updateHospital(${idx}, 'name', this.value)" placeholder="병원명"></td>
+                    <td><input type="text" value="${h.address || ''}" onchange="updateHospital(${idx}, 'address', this.value)" placeholder="구/시"></td>
+                `;
+
+                slots.forEach(slot => {
+                    config.departments.forEach(dept => {
+                        const key = `${slot.id}_${dept.id}`;
+                        cellsHtml += `<td class="text-center" style="background: ${dept.color}20;">
+                            <input type="number" min="0" value="${h[key] || 0}" onchange="updateHospital(${idx}, '${key}', this.value)">
+                        </td>`;
+                    });
+                });
+
+                cellsHtml += `<td><button class="btn btn-sm btn-outline-danger" onclick="removeHospital(${idx})">✕</button></td>`;
+
+                return `<tr>${cellsHtml}</tr>`;
+            }).join('');
+
+            if (hospitals.length === 0) {
+                const colSpan = 3 + slots.length * config.departments.length;
+                tbody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center text-muted py-4">병원을 추가해주세요.</td></tr>`;
+            }
+        }
+
+        function getPlacementSlots() {
+            const slots = [];
+
+            // 각 분반별 슬롯
+            config.classGroups.forEach((g, idx) => {
+                slots.push({
+                    id: g.id,
+                    classId: g.id,
+                    label: `${g.name} (${getWeekRangeForClass(idx)})`,
+                    isMixed: false
+                });
+            });
+
+            // 추가 배치 슬롯
+            const regularWeeks = config.classGroups.length * config.weeksPerClass;
+            if (regularWeeks < config.totalWeeks) {
+                slots.push({
+                    id: 'mixed',
+                    classId: null,
+                    label: `추가배치 (${regularWeeks + 1}-${config.totalWeeks}주)`,
+                    isMixed: true
+                });
+            }
+
+            return slots;
+        }
+
+        function addHospitalRow() {
+            const newHospital = { name: '', address: '' };
+            const slots = getPlacementSlots();
+            slots.forEach(slot => {
+                config.departments.forEach(dept => {
+                    newHospital[`${slot.id}_${dept.id}`] = 0;
+                });
+            });
+            hospitals.push(newHospital);
+            renderHospitalTable();
+            updateCapacitySummary();
+        }
+
+        function updateHospital(idx, field, value) {
+            if (field === 'name' || field === 'address') {
+                hospitals[idx][field] = value;
+            } else {
+                hospitals[idx][field] = parseInt(value) || 0;
+            }
+            updateCapacitySummary();
+        }
+
+        function removeHospital(idx) {
+            hospitals.splice(idx, 1);
+            renderHospitalTable();
+            updateCapacitySummary();
+        }
+
+        function updateCapacitySummary() {
+            const container = document.getElementById('capacitySummary');
+            if (config.classGroups.length === 0 || config.departments.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const slots = getPlacementSlots();
+            const summary = {};
+
+            slots.forEach(slot => {
+                summary[slot.id] = { total: 0, byDept: {} };
+                config.departments.forEach(dept => {
+                    summary[slot.id].byDept[dept.id] = 0;
+                });
+            });
+
+            hospitals.forEach(h => {
+                slots.forEach(slot => {
+                    config.departments.forEach(dept => {
+                        const key = `${slot.id}_${dept.id}`;
+                        const val = h[key] || 0;
+                        summary[slot.id].byDept[dept.id] += val;
+                        summary[slot.id].total += val;
+                    });
+                });
+            });
+
+            container.innerHTML = slots.map(slot => {
+                const group = config.classGroups.find(g => g.id === slot.classId);
+                const borderColor = group ? group.textColor : '#7c3aed';
+
+                const deptDetails = config.departments.map(dept =>
+                    `${dept.name.substring(0, 2)} ${summary[slot.id].byDept[dept.id]}`
+                ).join(' / ');
+
+                return `
+                    <div class="capacity-box" style="border-left: 4px solid ${borderColor};">
+                        <div class="class-name">${slot.label}</div>
+                        <div class="capacity-total">${summary[slot.id].total}명</div>
+                        <div class="capacity-detail">${deptDetails}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function saveHospitals() {
+            localStorage.setItem('universal_hospitals', JSON.stringify(hospitals));
+            alert('병원 설정이 저장되었습니다!');
+        }
+
+        function resetHospitals() {
+            if (confirm('병원 설정을 초기화하시겠습니까?')) {
+                hospitals = [];
+                localStorage.removeItem('universal_hospitals');
+                renderHospitalTable();
+                updateCapacitySummary();
+            }
+        }
+
+        // ====== 파일 업로드 ======
+        function initDragDrop() {
+            const zone = document.getElementById('uploadZone');
+
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('dragover');
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('dragover');
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file) processFile(file);
+            });
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) processFile(file);
+        }
+
+        function processFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(sheet);
+
+                    // 유효한 분반 이름 목록
+                    const validClassNames = config.classGroups.map(g => {
+                        // "A반" -> "A", "1분반" -> "1" 등 다양한 형식 지원
+                        return {
+                            id: g.id,
+                            name: g.name,
+                            normalized: g.name.replace(/[반분반]/g, '').trim().toUpperCase()
+                        };
+                    });
+
+                    students = json.map(row => {
+                        const normalized = {};
+                        for (let key in row) {
+                            const lowerKey = key.toLowerCase().trim();
+                            if (lowerKey.includes('학번') || lowerKey === 'id' || lowerKey === 'studentid') {
+                                normalized.studentId = String(row[key]).trim();
+                            } else if (lowerKey.includes('이름') || lowerKey === 'name') {
+                                normalized.name = String(row[key]).trim();
+                            } else if (lowerKey.includes('반') || lowerKey === 'class') {
+                                let classVal = String(row[key]).replace(/[반분반]/g, '').trim().toUpperCase();
+                                // 분반 ID 찾기
+                                const found = validClassNames.find(v => v.normalized === classVal || v.name === row[key]);
+                                normalized.classId = found ? found.id : null;
+                                normalized.className = found ? found.name : row[key];
+                            } else if (lowerKey.includes('주소') || lowerKey === 'address') {
+                                normalized.address = String(row[key]).trim();
+                            }
+                        }
+                        return normalized;
+                    }).filter(s => s.studentId && s.name && s.classId && s.address);
+
+                    if (students.length === 0) {
+                        alert('올바른 형식의 데이터를 찾을 수 없습니다.\n필수 컬럼: 학번, 이름, 반, 주소\n\n분반명이 설정과 일치하는지 확인하세요.');
+                        return;
+                    }
+
+                    showPreview();
+                } catch (error) {
+                    alert('파일 처리 중 오류가 발생했습니다: ' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function showPreview() {
+            const preview = document.getElementById('uploadPreview');
+            const table = document.getElementById('previewTable');
+
+            // 분반별 학생 수 계산
+            const classCounts = {};
+            config.classGroups.forEach(g => classCounts[g.id] = 0);
+            students.forEach(s => {
+                if (classCounts[s.classId] !== undefined) {
+                    classCounts[s.classId]++;
+                }
+            });
+
+            // 분반별 요약 표시
+            const colSize = Math.max(Math.floor(12 / config.classGroups.length), 3);
+            document.getElementById('classSummary').innerHTML = config.classGroups.map((g, idx) => `
+                <div class="col-${colSize}">
+                    <div class="stat-card py-2" style="border-left: 3px solid ${g.textColor};">
+                        <div class="number fs-5" style="color: ${g.textColor};">${classCounts[g.id]}</div>
+                        <small class="text-muted">${g.name} (${getWeekRangeForClass(idx)})</small>
+                    </div>
+                </div>
+            `).join('');
+
+            // 테이블 데이터
+            table.querySelector('tbody').innerHTML = students.map((s, i) => {
+                const group = config.classGroups.find(g => g.id === s.classId);
+                const style = group ? `background: ${group.color}; color: ${group.textColor};` : '';
+                return `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${s.studentId}</td>
+                        <td>${s.name}</td>
+                        <td><span class="badge" style="${style}">${s.className}</span></td>
+                        <td>${s.address}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            preview.style.display = 'block';
+        }
+
+        // ====== 배치 알고리즘 ======
+        function runPlacement() {
+            if (hospitals.length === 0) {
+                alert('먼저 병원 설정을 완료해주세요.');
+                return;
+            }
+
+            document.getElementById('loadingOverlay').classList.add('show');
+
+            setTimeout(() => {
+                try {
+                    placementResult = performPlacement();
+                    showResults();
+                } catch (error) {
+                    alert('배치 중 오류가 발생했습니다: ' + error.message);
+                    console.error(error);
+                } finally {
+                    document.getElementById('loadingOverlay').classList.remove('show');
+                }
+            }, 500);
+        }
+
+        function performPlacement() {
+            const results = [];
+            const unplacedStudents = [];
+            const slots = getPlacementSlots();
+
+            // 병원별 잔여 정원 복사
+            const remaining = hospitals.map((h, idx) => {
+                const r = { name: h.name, address: h.address, originalIdx: idx };
+                slots.forEach(slot => {
+                    config.departments.forEach(dept => {
+                        r[`${slot.id}_${dept.id}`] = h[`${slot.id}_${dept.id}`] || 0;
+                    });
+                });
+                return r;
+            });
+
+            // 분반별로 학생 그룹화
+            const studentsByClass = {};
+            config.classGroups.forEach(g => studentsByClass[g.id] = []);
+            students.forEach(s => {
+                if (studentsByClass[s.classId]) {
+                    studentsByClass[s.classId].push({ ...s });
+                }
+            });
+
+            // 1단계: 정규 기간 배치
+            for (const group of config.classGroups) {
+                const classStudents = studentsByClass[group.id];
+                if (classStudents.length === 0) continue;
+
+                const slotId = group.id;
+                const groupIdx = config.classGroups.findIndex(g => g.id === group.id);
+
+                // 병원별 점수 계산
+                classStudents.forEach(student => {
+                    student.hospitalScores = remaining.map((h, idx) => ({
+                        idx,
+                        hospital: h,
+                        score: calculateAddressScore(student.address, h.address)
+                    })).sort((a, b) => b.score - a.score);
+                    student.bestScore = student.hospitalScores[0]?.score || 0;
+                });
+
+                // 제약이 많은 학생 우선
+                classStudents.sort((a, b) => a.bestScore - b.bestScore);
+
+                // 부서별 배치 카운트
+                const deptCounts = {};
+                config.departments.forEach(d => deptCounts[d.id] = 0);
+
+                const classResults = [];
+
+                for (const student of classStudents) {
+                    let placed = false;
+
+                    // 부서 균형 맞추기
+                    const deptOrder = [...config.departments].sort((a, b) =>
+                        deptCounts[a.id] - deptCounts[b.id]
+                    );
+
+                    for (const { idx } of student.hospitalScores) {
+                        const hospital = remaining[idx];
+                        for (const dept of deptOrder) {
+                            const key = `${slotId}_${dept.id}`;
+                            if (hospital[key] > 0) {
+                                hospital[key]--;
+                                deptCounts[dept.id]++;
+
+                                classResults.push({
+                                    studentId: student.studentId,
+                                    name: student.name,
+                                    classId: student.classId,
+                                    className: student.className,
+                                    address: student.address,
+                                    hospitalIdx: idx,
+                                    hospitalName: hospital.name,
+                                    hospitalAddr: hospital.address,
+                                    deptId: dept.id,
+                                    deptName: dept.name,
+                                    score: student.hospitalScores.find(h => h.idx === idx).score,
+                                    slotId: slotId
+                                });
+                                placed = true;
+                                break;
+                            }
+                        }
+                        if (placed) break;
+                    }
+
+                    if (!placed) {
+                        unplacedStudents.push(student);
+                    }
+                }
+
+                // 교환 개선
+                let improved = true;
+                let iterations = 0;
+                while (improved && iterations < 100) {
+                    improved = false;
+                    iterations++;
+
+                    for (let i = 0; i < classResults.length; i++) {
+                        for (let j = i + 1; j < classResults.length; j++) {
+                            const r1 = classResults[i];
+                            const r2 = classResults[j];
+
+                            if (r1.deptId !== r2.deptId) continue;
+
+                            const student1 = classStudents.find(s => s.studentId === r1.studentId);
+                            const student2 = classStudents.find(s => s.studentId === r2.studentId);
+
+                            const currentScore = r1.score + r2.score;
+                            const newScore1 = calculateAddressScore(student1.address, remaining[r2.hospitalIdx].address);
+                            const newScore2 = calculateAddressScore(student2.address, remaining[r1.hospitalIdx].address);
+
+                            if (newScore1 + newScore2 > currentScore) {
+                                const tempIdx = r1.hospitalIdx;
+                                const tempName = r1.hospitalName;
+                                const tempAddr = r1.hospitalAddr;
+                                r1.hospitalIdx = r2.hospitalIdx;
+                                r1.hospitalName = r2.hospitalName;
+                                r1.hospitalAddr = r2.hospitalAddr;
+                                r1.score = newScore1;
+                                r2.hospitalIdx = tempIdx;
+                                r2.hospitalName = tempName;
+                                r2.hospitalAddr = tempAddr;
+                                r2.score = newScore2;
+                                improved = true;
+                            }
+                        }
+                    }
+                }
+
+                // 결과 저장
+                classResults.forEach(r => {
+                    results.push({
+                        studentId: r.studentId,
+                        name: r.name,
+                        classId: r.classId,
+                        className: r.className,
+                        period: getWeekRangeForClass(groupIdx),
+                        slotId: r.slotId,
+                        isMixed: false,
+                        address: r.address,
+                        hospital: r.hospitalName,
+                        hospitalAddr: r.hospitalAddr,
+                        deptId: r.deptId,
+                        department: r.deptName,
+                        score: r.score,
+                        status: '배치완료'
+                    });
+                });
+            }
+
+            // 2단계: 추가 배치 (mixed)
+            const mixedSlot = slots.find(s => s.isMixed);
+            if (mixedSlot && unplacedStudents.length > 0) {
+                // 점수 재계산
+                unplacedStudents.forEach(student => {
+                    student.hospitalScores = remaining.map((h, idx) => ({
+                        idx,
+                        hospital: h,
+                        score: calculateAddressScore(student.address, h.address)
+                    })).sort((a, b) => b.score - a.score);
+                    student.bestScore = student.hospitalScores[0]?.score || 0;
+                });
+
+                unplacedStudents.sort((a, b) => a.bestScore - b.bestScore);
+
+                const deptCounts = {};
+                config.departments.forEach(d => deptCounts[d.id] = 0);
+
+                const mixedResults = [];
+
+                for (const student of unplacedStudents) {
+                    let placed = false;
+                    const deptOrder = [...config.departments].sort((a, b) =>
+                        deptCounts[a.id] - deptCounts[b.id]
+                    );
+
+                    for (const { idx } of student.hospitalScores) {
+                        const hospital = remaining[idx];
+                        for (const dept of deptOrder) {
+                            const key = `${mixedSlot.id}_${dept.id}`;
+                            if (hospital[key] > 0) {
+                                hospital[key]--;
+                                deptCounts[dept.id]++;
+
+                                mixedResults.push({
+                                    studentId: student.studentId,
+                                    name: student.name,
+                                    classId: student.classId,
+                                    className: student.className,
+                                    address: student.address,
+                                    hospitalIdx: idx,
+                                    hospitalName: hospital.name,
+                                    hospitalAddr: hospital.address,
+                                    deptId: dept.id,
+                                    deptName: dept.name,
+                                    score: student.hospitalScores.find(h => h.idx === idx).score
+                                });
+                                placed = true;
+                                break;
+                            }
+                        }
+                        if (placed) break;
+                    }
+
+                    if (!placed) {
+                        results.push({
+                            studentId: student.studentId,
+                            name: student.name,
+                            classId: student.classId,
+                            className: student.className,
+                            period: '-',
+                            slotId: null,
+                            isMixed: false,
+                            address: student.address,
+                            hospital: '-',
+                            department: '-',
+                            deptId: null,
+                            score: 0,
+                            status: '미배치'
+                        });
+                    }
+                }
+
+                // 교환 개선
+                let improved = true;
+                let iterations = 0;
+                while (improved && iterations < 100) {
+                    improved = false;
+                    iterations++;
+                    for (let i = 0; i < mixedResults.length; i++) {
+                        for (let j = i + 1; j < mixedResults.length; j++) {
+                            const r1 = mixedResults[i];
+                            const r2 = mixedResults[j];
+                            if (r1.deptId !== r2.deptId) continue;
+
+                            const student1 = unplacedStudents.find(s => s.studentId === r1.studentId);
+                            const student2 = unplacedStudents.find(s => s.studentId === r2.studentId);
+
+                            const currentScore = r1.score + r2.score;
+                            const newScore1 = calculateAddressScore(student1.address, remaining[r2.hospitalIdx].address);
+                            const newScore2 = calculateAddressScore(student2.address, remaining[r1.hospitalIdx].address);
+
+                            if (newScore1 + newScore2 > currentScore) {
+                                const tempIdx = r1.hospitalIdx;
+                                const tempName = r1.hospitalName;
+                                const tempAddr = r1.hospitalAddr;
+                                r1.hospitalIdx = r2.hospitalIdx;
+                                r1.hospitalName = r2.hospitalName;
+                                r1.hospitalAddr = r2.hospitalAddr;
+                                r1.score = newScore1;
+                                r2.hospitalIdx = tempIdx;
+                                r2.hospitalName = tempName;
+                                r2.hospitalAddr = tempAddr;
+                                r2.score = newScore2;
+                                improved = true;
+                            }
+                        }
+                    }
+                }
+
+                const regularWeeks = config.classGroups.length * config.weeksPerClass;
+                mixedResults.forEach(r => {
+                    results.push({
+                        studentId: r.studentId,
+                        name: r.name,
+                        classId: r.classId,
+                        className: r.className,
+                        period: `${regularWeeks + 1}-${config.totalWeeks}주`,
+                        slotId: 'mixed',
+                        isMixed: true,
+                        address: r.address,
+                        hospital: r.hospitalName,
+                        hospitalAddr: r.hospitalAddr,
+                        deptId: r.deptId,
+                        department: r.deptName,
+                        score: r.score,
+                        status: '배치완료'
+                    });
+                });
+            }
+
+            return results;
+        }
+
+        function calculateAddressScore(studentAddr, hospitalAddr) {
+            const studentParts = extractAddressParts(studentAddr);
+            const hospitalParts = extractAddressParts(hospitalAddr);
+
+            let score = 0;
+
+            // 같은 지역이면 최고 점수
+            if (studentParts.region && hospitalParts.region && studentParts.region === hospitalParts.region) {
+                score += 100;
+            }
+
+            // 인접 지역 보너스
+            const adjacent = {
+                '강남구': ['서초구', '송파구', '강동구', '성남시', '분당구'],
+                '서초구': ['강남구', '동작구', '관악구', '과천시', '성남시'],
+                '송파구': ['강남구', '강동구', '광진구', '하남시', '성남시'],
+                '강동구': ['송파구', '광진구', '하남시', '구리시'],
+                '종로구': ['성북구', '동대문구', '중구', '서대문구', '은평구'],
+                '서대문구': ['종로구', '마포구', '은평구', '고양시'],
+                '성북구': ['종로구', '동대문구', '강북구', '노원구', '의정부시'],
+                '마포구': ['서대문구', '용산구', '은평구', '고양시'],
+                '용산구': ['마포구', '중구', '성동구', '동작구'],
+                '중구': ['종로구', '용산구', '성동구', '동대문구'],
+                '동대문구': ['중구', '종로구', '성북구', '광진구', '중랑구'],
+                '광진구': ['동대문구', '성동구', '송파구', '강동구', '중랑구', '구리시'],
+                '성동구': ['광진구', '중구', '용산구', '동대문구'],
+                '강북구': ['노원구', '도봉구', '성북구', '의정부시'],
+                '노원구': ['도봉구', '강북구', '성북구', '중랑구', '의정부시', '남양주시'],
+                '도봉구': ['노원구', '강북구', '의정부시', '양주시'],
+                '중랑구': ['노원구', '동대문구', '광진구', '구리시', '남양주시'],
+                '은평구': ['서대문구', '마포구', '종로구', '고양시'],
+                '동작구': ['서초구', '관악구', '영등포구', '용산구'],
+                '관악구': ['서초구', '동작구', '금천구', '과천시', '안양시'],
+                '영등포구': ['동작구', '양천구', '강서구', '구로구', '광명시'],
+                '양천구': ['영등포구', '강서구', '구로구', '부천시'],
+                '강서구': ['양천구', '영등포구', '부천시', '김포시', '고양시'],
+                '구로구': ['영등포구', '양천구', '금천구', '광명시', '부천시'],
+                '금천구': ['구로구', '관악구', '광명시', '안양시'],
+                '성남시': ['강남구', '서초구', '송파구', '분당구', '수정구', '중원구', '광주시', '하남시', '용인시'],
+                '분당구': ['강남구', '서초구', '성남시', '수정구', '중원구', '용인시', '광주시'],
+                '수정구': ['성남시', '분당구', '중원구', '하남시', '광주시'],
+                '중원구': ['성남시', '분당구', '수정구', '하남시'],
+                '용인시': ['성남시', '분당구', '수원시', '광주시', '안성시', '화성시'],
+                '수원시': ['용인시', '화성시', '안양시', '의왕시', '안산시', '오산시'],
+                '화성시': ['수원시', '용인시', '오산시', '평택시', '안산시'],
+                '안양시': ['관악구', '금천구', '과천시', '의왕시', '수원시', '군포시', '광명시'],
+                '과천시': ['서초구', '관악구', '안양시', '의왕시', '성남시'],
+                '의왕시': ['안양시', '과천시', '수원시', '군포시', '성남시'],
+                '군포시': ['안양시', '의왕시', '안산시', '수원시'],
+                '안산시': ['시흥시', '군포시', '수원시', '화성시', '광명시'],
+                '시흥시': ['안산시', '광명시', '부천시', '안양시', '인천'],
+                '광명시': ['영등포구', '구로구', '금천구', '안양시', '시흥시', '부천시'],
+                '부천시': ['양천구', '강서구', '구로구', '광명시', '시흥시', '김포시', '인천'],
+                '김포시': ['강서구', '부천시', '고양시', '인천', '파주시'],
+                '고양시': ['서대문구', '마포구', '은평구', '강서구', '김포시', '파주시', '양주시'],
+                '파주시': ['고양시', '김포시', '양주시', '연천군'],
+                '양주시': ['도봉구', '의정부시', '고양시', '파주시', '동두천시', '포천시'],
+                '의정부시': ['강북구', '도봉구', '노원구', '양주시', '남양주시', '포천시'],
+                '남양주시': ['노원구', '중랑구', '구리시', '의정부시', '가평군', '포천시'],
+                '구리시': ['강동구', '광진구', '중랑구', '남양주시', '하남시'],
+                '하남시': ['송파구', '강동구', '구리시', '남양주시', '성남시', '광주시'],
+                '광주시': ['성남시', '하남시', '용인시', '여주시', '이천시'],
+                '이천시': ['광주시', '여주시', '용인시', '안성시'],
+                '여주시': ['광주시', '이천시', '양평군'],
+                '안성시': ['용인시', '이천시', '평택시', '천안시'],
+                '평택시': ['화성시', '안성시', '오산시', '천안시', '아산시'],
+                '오산시': ['수원시', '화성시', '평택시', '용인시'],
+                '인천': ['부천시', '시흥시', '김포시'],
+                '인천시': ['부천시', '시흥시', '김포시']
+            };
+
+            if (studentParts.region && hospitalParts.region) {
+                if (adjacent[studentParts.region] && adjacent[studentParts.region].includes(hospitalParts.region)) {
+                    score += 50;
+                }
+            }
+
+            // 같은 권역 보너스
+            const regions = {
+                '서울북부': ['종로구', '성북구', '강북구', '노원구', '도봉구', '동대문구', '중랑구', '의정부시', '양주시', '포천시', '동두천시', '연천군'],
+                '서울동부': ['광진구', '성동구', '중구', '구리시', '남양주시', '하남시', '가평군'],
+                '서울서부': ['서대문구', '마포구', '은평구', '고양시', '파주시', '김포시'],
+                '서울남서': ['영등포구', '양천구', '강서구', '구로구', '금천구', '광명시', '부천시', '시흥시', '인천', '인천시'],
+                '서울남부': ['동작구', '관악구', '안양시', '과천시', '의왕시', '군포시', '안산시'],
+                '강남권': ['강남구', '서초구', '송파구', '강동구', '성남시', '분당구', '수정구', '중원구', '하남시', '광주시'],
+                '수원권': ['수원시', '용인시', '화성시', '오산시', '평택시', '안성시', '이천시', '여주시']
+            };
+
+            for (const [regionName, areas] of Object.entries(regions)) {
+                if (areas.includes(studentParts.region) && areas.includes(hospitalParts.region)) {
+                    score += 25;
+                    break;
+                }
+            }
+
+            score += Math.random() * 3;
+            return score;
+        }
+
+        function extractAddressParts(address) {
+            const parts = { region: null, dong: null };
+            if (!address) return parts;
+
+            const cityMatch = address.match(/([가-힣]+[시군])/);
+            const guMatch = address.match(/([가-힣]+구)/);
+            const dongMatch = address.match(/([가-힣]+[동읍면리])/);
+
+            if (guMatch) {
+                const gu = guMatch[1];
+                const seoulGu = ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구',
+                    '노원구', '도봉구', '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구',
+                    '성북구', '송파구', '양천구', '영등포구', '용산구', '은평구', '종로구', '중구', '중랑구'];
+                const seongnamGu = ['분당구', '수정구', '중원구'];
+                const gyeonggiGu = ['처인구', '기흥구', '수지구', '장안구', '권선구', '팔달구', '영통구',
+                    '덕양구', '일산동구', '일산서구', '만안구', '동안구', '상록구', '단원구',
+                    '부평구', '계양구', '남동구', '연수구', '미추홀구', '중구', '동구', '서구'];
+
+                if (seoulGu.includes(gu)) {
+                    parts.region = gu;
+                } else if (seongnamGu.includes(gu) || gyeonggiGu.includes(gu)) {
+                    parts.region = gu;
+                } else if (cityMatch) {
+                    parts.region = cityMatch[1];
+                }
+            } else if (cityMatch) {
+                parts.region = cityMatch[1];
+            }
+
+            if (dongMatch) parts.dong = dongMatch[1];
+            return parts;
+        }
+
+        // ====== 결과 표시 ======
+        function showResults() {
+            document.getElementById('noResultMessage').style.display = 'none';
+            document.getElementById('resultContent').style.display = 'block';
+
+            // 통계 업데이트
+            const total = students.length;
+            const placed = placementResult.filter(r => r.status === '배치완료').length;
+            const unplaced = total - placed;
+            const rate = total > 0 ? Math.round((placed / total) * 100) : 0;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statPlaced').textContent = placed;
+            document.getElementById('statUnplaced').textContent = unplaced;
+            document.getElementById('statRate').textContent = rate + '%';
+
+            // 필터 버튼 생성
+            renderFilterButtons();
+
+            // 결과 테이블 헤더
+            renderResultTableHeader();
+
+            // 결과 테이블
+            filterResult('all');
+
+            // 병원별 현황
+            showHospitalSummary();
+
+            // 결과 탭으로 이동
+            document.getElementById('result-tab').click();
+        }
+
+        function renderFilterButtons() {
+            const container = document.getElementById('filterButtons');
+            let html = '<span class="me-3 fw-bold">필터:</span>';
+            html += '<button class="filter-btn active" data-filter="all" onclick="filterResult(\'all\')">전체</button>';
+
+            // 분반별 필터
+            config.classGroups.forEach(g => {
+                html += `<button class="filter-btn" data-filter="${g.id}" onclick="filterResult('${g.id}')"
+                         style="border-color: ${g.textColor};">${g.name}</button>`;
+            });
+
+            html += '<span class="mx-2">|</span>';
+            html += '<button class="filter-btn" data-filter="regular" onclick="filterResult(\'regular\')">정규배치</button>';
+            html += '<button class="filter-btn" data-filter="mixed" onclick="filterResult(\'mixed\')">추가배치</button>';
+            html += '<span class="mx-2">|</span>';
+
+            // 병동별 필터
+            config.departments.forEach(d => {
+                html += `<button class="filter-btn" data-filter="${d.id}" onclick="filterResult('${d.id}')"
+                         style="border-color: ${d.textColor};">${d.name}</button>`;
+            });
+
+            html += '<span class="mx-2">|</span>';
+            html += '<button class="filter-btn text-danger" data-filter="lowscore" onclick="filterResult(\'lowscore\')">원거리 배치</button>';
+
+            container.innerHTML = html;
+        }
+
+        function renderResultTableHeader() {
+            const thead = document.getElementById('resultTableHead');
+            thead.innerHTML = `
+                <tr>
+                    <th>학번</th>
+                    <th>이름</th>
+                    <th>분반</th>
+                    <th>실습기간</th>
+                    <th>주소</th>
+                    <th>배정병원</th>
+                    <th>실습병동</th>
+                    <th>상태</th>
+                </tr>
+            `;
+        }
+
+        function filterResult(filter) {
+            // 버튼 활성화
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.filter === filter) btn.classList.add('active');
+            });
+
+            let filtered;
+            if (filter === 'all') {
+                filtered = placementResult;
+            } else if (filter === 'regular') {
+                filtered = placementResult.filter(r => !r.isMixed && r.status === '배치완료');
+            } else if (filter === 'mixed') {
+                filtered = placementResult.filter(r => r.isMixed);
+            } else if (filter === 'lowscore') {
+                filtered = placementResult.filter(r => r.status === '배치완료' && (r.score || 0) < 50);
+            } else if (config.classGroups.find(g => g.id === filter)) {
+                filtered = placementResult.filter(r => r.classId === filter);
+            } else if (config.departments.find(d => d.id === filter)) {
+                filtered = placementResult.filter(r => r.deptId === filter);
+            } else {
+                filtered = placementResult;
+            }
+
+            document.getElementById('resultCount').textContent = filtered.length + '명';
+
+            const tbody = document.getElementById('resultTableBody');
+            tbody.innerHTML = filtered.map(r => {
+                const score = r.score || 0;
+                const isLowScore = r.status === '배치완료' && score < 50;
+                const scoreClass = score >= 100 ? 'text-success' : score >= 50 ? 'text-primary' : 'text-danger';
+                const scoreLabel = score >= 100 ? '동일지역' : score >= 50 ? '인접지역' : '원거리';
+
+                const group = config.classGroups.find(g => g.id === r.classId);
+                const dept = config.departments.find(d => d.id === r.deptId);
+                const classStyle = group ? `background: ${group.color}; color: ${group.textColor};` : '';
+                const deptStyle = dept ? `background: ${dept.color}; color: ${dept.textColor};` : '';
+
+                return `
+                <tr class="${r.status === '미배치' ? 'table-danger' : isLowScore ? 'table-warning' : r.isMixed ? 'table-info' : ''}">
+                    <td>${r.studentId}</td>
+                    <td>${r.name}</td>
+                    <td><span class="badge" style="${classStyle}">${r.className}</span></td>
+                    <td><span class="badge ${r.isMixed ? 'bg-purple' : 'bg-secondary'}" style="${r.isMixed ? 'background: #8b5cf6;' : ''}">${r.period}</span></td>
+                    <td>${r.address}</td>
+                    <td>${r.hospital}${r.hospitalAddr ? `<br><small class="text-muted">(${r.hospitalAddr})</small>` : ''}</td>
+                    <td>
+                        ${r.department !== '-' ?
+                            `<span class="badge" style="${deptStyle}">${r.department}</span>`
+                            : '-'}
+                    </td>
+                    <td>
+                        ${r.status === '배치완료' ?
+                            `<span class="badge ${isLowScore ? 'bg-warning text-dark' : 'bg-success'}">${r.isMixed ? '추가' : '완료'}</span>
+                             <br><small class="${scoreClass}">${scoreLabel}</small>`
+                            : `<span class="badge bg-danger">미배치</span>`
+                        }
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function showHospitalSummary() {
+            const slots = getPlacementSlots();
+            const summary = {};
+
+            hospitals.forEach(h => {
+                summary[h.name] = {};
+                slots.forEach(slot => {
+                    summary[h.name][slot.id] = {};
+                    config.departments.forEach(dept => {
+                        summary[h.name][slot.id][dept.id] = { placed: 0, total: h[`${slot.id}_${dept.id}`] || 0 };
+                    });
+                });
+            });
+
+            placementResult.forEach(r => {
+                if (r.hospital !== '-' && summary[r.hospital] && r.slotId) {
+                    if (summary[r.hospital][r.slotId] && summary[r.hospital][r.slotId][r.deptId]) {
+                        summary[r.hospital][r.slotId][r.deptId].placed++;
+                    }
+                }
+            });
+
+            // 헤더 생성
+            const thead = document.getElementById('hospitalSummaryHead');
+            let headerRow1 = '<th rowspan="2" class="align-middle text-center">병원명</th>';
+            let headerRow2 = '';
+
+            slots.forEach(slot => {
+                const group = config.classGroups.find(g => g.id === slot.classId);
+                const style = group ? `background: ${group.color}; color: ${group.textColor};` : 'background: #ede9fe; color: #7c3aed;';
+                headerRow1 += `<th colspan="${config.departments.length}" class="text-center" style="${style}">${slot.label}</th>`;
+
+                config.departments.forEach(dept => {
+                    headerRow2 += `<th class="text-center" style="font-size:0.7rem; background: ${dept.color};">${dept.name.substring(0, 2)}</th>`;
+                });
+            });
+
+            headerRow1 += '<th rowspan="2" class="align-middle text-center">총계</th>';
+            thead.innerHTML = `<tr>${headerRow1}</tr><tr>${headerRow2}</tr>`;
+
+            // 바디 생성
+            const tbody = document.getElementById('hospitalSummaryBody');
+            tbody.innerHTML = Object.entries(summary).map(([name, data]) => {
+                let totalPlaced = 0;
+                let cells = '';
+
+                slots.forEach(slot => {
+                    config.departments.forEach(dept => {
+                        const info = data[slot.id][dept.id];
+                        totalPlaced += info.placed;
+                        const isFull = info.placed >= info.total && info.total > 0;
+                        cells += `<td class="text-center ${isFull ? 'text-success fw-bold' : ''}" style="font-size:0.8rem;">
+                            ${info.total > 0 ? `${info.placed}/${info.total}` : '-'}
+                        </td>`;
+                    });
+                });
+
+                return `
+                    <tr>
+                        <td>${name}</td>
+                        ${cells}
+                        <td class="text-center"><strong>${totalPlaced}명</strong></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ====== 결과 다운로드 ======
+        function downloadResult() {
+            if (placementResult.length === 0) {
+                alert('다운로드할 결과가 없습니다.');
+                return;
+            }
+
+            const subjectName = config.subjectName || '임상실습';
+
+            const ws = XLSX.utils.json_to_sheet(placementResult.map(r => ({
+                '학번': r.studentId,
+                '이름': r.name,
+                '분반': r.className,
+                '실습기간': r.period,
+                '배치유형': r.isMixed ? '추가배치' : '정규배치',
+                '주소': r.address,
+                '배정병원': r.hospital,
+                '실습병동': r.department,
+                '상태': r.status
+            })));
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '배치결과');
+
+            // 병원별 요약 시트
+            const slots = getPlacementSlots();
+            const summaryData = [];
+
+            hospitals.forEach(h => {
+                const row = { '병원명': h.name };
+                slots.forEach(slot => {
+                    config.departments.forEach(dept => {
+                        const placed = placementResult.filter(r => r.hospital === h.name && r.slotId === slot.id && r.deptId === dept.id).length;
+                        row[`${slot.label}_${dept.name}`] = `${placed}/${h[`${slot.id}_${dept.id}`] || 0}`;
+                    });
+                });
+                summaryData.push(row);
+            });
+
+            const ws2 = XLSX.utils.json_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, ws2, '병원별현황');
+
+            XLSX.writeFile(wb, `${subjectName}_배치결과_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+    </script>
+</body>
+</html>
